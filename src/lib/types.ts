@@ -1,0 +1,42 @@
+import type { cities, operations, permissionLabels, propertyTypes } from "@/lib/constants";
+
+export type Operation = (typeof operations)[number]["value"];
+export type City = (typeof cities)[number];
+export type PropertyType = (typeof propertyTypes)[number];
+export type PermissionKey = keyof typeof permissionLabels;
+
+export type UserRole = "admin" | "employee";
+
+export type UserProfile = {
+  id: string;
+  auth_id: string | null;
+  full_name: string;
+  email: string;
+  role: UserRole;
+  can_add_employee: boolean;
+  can_edit_permissions: boolean;
+  can_delete_employee: boolean;
+  can_add_property: boolean;
+  can_edit_property: boolean;
+  can_delete_property: boolean;
+  can_view_mobile: boolean;
+  can_view_all: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Property = {
+  id: string;
+  operation: Operation;
+  city: City;
+  property_type: PropertyType;
+  employee_name: string;
+  mobile: string;
+  description: string;
+  related_property_id: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PropertyInput = Omit<Property, "id" | "created_at" | "updated_at">;

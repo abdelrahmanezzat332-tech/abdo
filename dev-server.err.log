@@ -1,0 +1,104 @@
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/login" notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="ar" dir="rtl">
+                          <body
+-                           data-new-gr-c-s-check-loaded="14.1292.0"
+-                           data-gr-ext-installed=""
+                          >
+                  ...
+ 
+    at <unknown> (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:3439:25)
+    at runWithFiberInDEV (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at emitPendingHydrationWarnings (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:3438:13)
+    at completeWork (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6885:102)
+    at runWithFiberInDEV (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:131)
+    at completeUnitOfWork (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9622:23)
+    at performUnitOfWork (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9557:28)
+    at workLoopConcurrentByScheduler (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9551:58)
+    at renderRootConcurrent (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9534:71)
+    at performWorkOnRoot (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9061:150)
+    at performWorkOnRootViaSchedulerTask (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10255:9)
+    at MessagePort.performWorkUntilDeadline (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:2647:64) (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:3439:25)
+[browser] TypeError: Failed to fetch
+    at push.resolveFetch (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:606:23)
+    at _handleRequest (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:988:24)
+    at _request (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:975:24)
+    at <unknown> (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:7636:220)
+    at <unknown> (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:681:42)
+    at <unknown> (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:693:11)
+    at new Promise (<anonymous>)
+    at retryable (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:675:21)
+    at SupabaseAuthClient._refreshAccessToken (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:7631:219)
+    at SupabaseAuthClient._callRefreshToken (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:7787:48)
+    at SupabaseAuthClient.__loadSession (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:6134:57)
+    at async SupabaseAuthClient._useSession (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:6064:28)
+    at async (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:8057:32) (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:990:17)
+[browser] "⨯ unhandledRejection:" { code: [32m'PGRST303'[39m, details: [1mnull[22m, hint: [1mnull[22m, message: [32m'JWT expired'[39m } 
+
+[browser] TypeError: Failed to fetch
+    at push.resolveFetch (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:606:23)
+    at _handleRequest (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:988:24)
+    at _request (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:975:24)
+    at <unknown> (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:7636:220)
+    at async (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:681:36) (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:990:17)
+[browser] TypeError: Failed to fetch
+    at push.resolveFetch (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:606:23)
+    at _handleRequest (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:988:24)
+    at _request (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:975:24)
+    at <unknown> (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:7636:220)
+    at async (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:681:36) (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:990:17)
+[browser] TypeError: Failed to fetch
+    at push.resolveFetch (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:606:23)
+    at _handleRequest (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:988:24)
+    at _request (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:975:24)
+    at <unknown> (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:7636:220)
+    at async (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:681:36) (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:990:17)
+[browser] TypeError: Failed to fetch
+    at push.resolveFetch (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:606:23)
+    at _handleRequest (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:988:24)
+    at _request (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:975:24)
+    at <unknown> (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:7636:220)
+    at async (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:681:36) (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:990:17)
+[browser] TypeError: Failed to fetch
+    at push.resolveFetch (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:606:23)
+    at _handleRequest (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:988:24)
+    at _request (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:975:24)
+    at <unknown> (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:7636:220)
+    at async (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:681:36) (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:990:17)
+[browser] TypeError: Failed to fetch
+    at push.resolveFetch (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:606:23)
+    at _handleRequest (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:988:24)
+    at _request (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:975:24)
+    at <unknown> (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:7636:220)
+    at async (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:681:36) (file://C:/Users/abdel/Desktop/شششششششش/.next/dev/static/chunks/node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js:990:17)
