@@ -1,8 +1,15 @@
-import type { cities, operations, permissionLabels, propertyTypes } from "@/lib/constants";
+import type {
+  cities,
+  operations,
+  permissionLabels,
+  propertyStatuses,
+  propertyTypes
+} from "@/lib/constants";
 
 export type Operation = (typeof operations)[number]["value"];
 export type City = (typeof cities)[number];
 export type PropertyType = (typeof propertyTypes)[number];
+export type PropertyStatus = (typeof propertyStatuses)[number]["value"];
 export type PermissionKey = keyof typeof permissionLabels;
 
 export type UserRole = "admin" | "employee";
@@ -27,12 +34,15 @@ export type UserProfile = {
 
 export type Property = {
   id: string;
+  property_code: string | null;
   operation: Operation;
   city: City;
   property_type: PropertyType;
   employee_name: string;
   mobile: string;
   description: string;
+  status: PropertyStatus;
+  archived_at: string | null;
   related_property_id: string | null;
   created_by: string | null;
   created_at: string;
