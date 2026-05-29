@@ -1035,3 +1035,17 @@ label span {
     width: 100%;
   }
 }
+.status-available {
+  color: #13795b;
+  background: rgba(29, 155, 108, 0.12);
+}
+
+.status-sold {
+  color: #8a1f1f;
+  background: rgba(216, 75, 75, 0.12);
+}
+
+.status-rented {
+  color: #6d4b00;
+  background: rgba(199, 155, 54, 0.16);
+}
