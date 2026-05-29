@@ -6,19 +6,20 @@ import { useMemo, useState, type FormEvent } from "react";
 
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/context/toast-context";
-import { cities, operations, propertyTypes } from "@/lib/constants";
+import { cities, operations, propertyStatuses, propertyTypes } from "@/lib/constants";
 import { normalizePhone, operationLabel } from "@/lib/format";
 import { hasPermission } from "@/lib/permissions";
 import { getSupabase } from "@/lib/supabase";
-import type { Property } from "@/lib/types";
+import type { Operation, Property, PropertyStatus } from "@/lib/types";
 
 type FormState = {
-  operation: "sell" | "rent";
+  operation: Operation;
   city: string;
   property_type: string;
   employee_name: string;
   mobile: string;
   description: string;
+  status: PropertyStatus;
 };
 
 const initialForm: FormState = {
@@ -27,7 +28,8 @@ const initialForm: FormState = {
   property_type: "شقق",
   employee_name: "",
   mobile: "",
-  description: ""
+  description: "",
+  status: "available"
 };
 
 export function PropertyForm({ property }: { property?: Property }) {
@@ -37,6 +39,7 @@ export function PropertyForm({ property }: { property?: Property }) {
   const initialCanViewMobile = hasPermission(profile, "can_view_mobile");
   const [relatedProperty, setRelatedProperty] = useState<Property | null>(null);
   const [saving, setSaving] = useState(false);
+
   const [form, setForm] = useState<FormState>(() =>
     property
       ? {
@@ -45,7 +48,8 @@ export function PropertyForm({ property }: { property?: Property }) {
           property_type: property.property_type,
           employee_name: property.employee_name,
           mobile: initialCanViewMobile ? property.mobile : "",
-          description: property.description
+          description: property.description,
+          status: property.status ?? "available"
         }
       : {
           ...initialForm,
@@ -57,6 +61,7 @@ export function PropertyForm({ property }: { property?: Property }) {
     if (property) return hasPermission(profile, "can_edit_property");
     return hasPermission(profile, "can_add_property");
   }, [profile, property]);
+
   const canViewMobile = hasPermission(profile, "can_view_mobile");
   const mobileIsHidden = Boolean(property && !canViewMobile);
 
@@ -67,24 +72,28 @@ export function PropertyForm({ property }: { property?: Property }) {
 
   async function findRelatedMobile(mobile: string) {
     const supabase = getSupabase();
+
     const { data, error } = await supabase
       .rpc("find_property_by_mobile", {
         lookup_mobile: mobile,
         excluded_property_id: property?.id ?? null
       })
       .maybeSingle();
+
     if (error) throw error;
     return data as Property | null;
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
     if (!canSubmit || !user) {
       showToast("ليست لديك صلاحية تنفيذ هذا الإجراء", "error");
       return;
     }
 
     const mobile = normalizePhone(mobileIsHidden ? property?.mobile ?? "" : form.mobile);
+
     if (!mobile) {
       showToast("برجاء إدخال رقم موبايل صحيح", "error");
       return;
@@ -98,6 +107,7 @@ export function PropertyForm({ property }: { property?: Property }) {
       if (existing) setRelatedProperty(existing);
 
       const supabase = getSupabase();
+
       const payload = {
         operation: form.operation,
         city: form.city,
@@ -105,6 +115,7 @@ export function PropertyForm({ property }: { property?: Property }) {
         employee_name: form.employee_name.trim(),
         ...(mobileIsHidden ? {} : { mobile }),
         description: form.description.trim(),
+        status: form.status,
         related_property_id: existing?.id ?? property?.related_property_id ?? null,
         created_by: property?.created_by ?? user.id
       };
@@ -114,9 +125,7 @@ export function PropertyForm({ property }: { property?: Property }) {
         : supabase.from("properties").insert(payload);
 
       const { error } = await request;
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       showToast(
         existing
@@ -126,7 +135,12 @@ export function PropertyForm({ property }: { property?: Property }) {
             : "تمت إضافة الوحدة بنجاح",
         "success"
       );
-      router.push(`/properties?operation=${form.operation}&city=${encodeURIComponent(form.city)}`);
+
+      if (form.status === "rented") {
+        router.push("/archive");
+      } else {
+        router.push(`/properties?operation=${form.operation}&city=${encodeURIComponent(form.city)}`);
+      }
     } catch (error) {
       showToast(error instanceof Error ? error.message : "حدث خطأ أثناء حفظ الوحدة", "error");
     } finally {
@@ -143,6 +157,17 @@ export function PropertyForm({ property }: { property?: Property }) {
             {operations.map((operation) => (
               <option key={operation.value} value={operation.value}>
                 {operation.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          <span>حالة الوحدة</span>
+          <select value={form.status} onChange={(event) => updateField("status", event.target.value)}>
+            {propertyStatuses.map((status) => (
+              <option key={status.value} value={status.value}>
+                {status.label}
               </option>
             ))}
           </select>
@@ -208,9 +233,7 @@ export function PropertyForm({ property }: { property?: Property }) {
       {relatedProperty ? (
         <div className="duplicate-box">
           <strong>هذا الرقم مرتبط بوحدة أخرى</strong>
-          <p>
-            سيتم حفظ الوحدة الحالية كوحدة منفصلة، مع ربطها داخليًا بالوحدة القديمة.
-          </p>
+          <p>سيتم حفظ الوحدة الحالية كوحدة منفصلة، مع ربطها داخليًا بالوحدة القديمة.</p>
           <span>
             الوحدة القديمة: {operationLabel(relatedProperty.operation)} - {relatedProperty.city} - {relatedProperty.property_type}
           </span>
