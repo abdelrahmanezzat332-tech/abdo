@@ -9,7 +9,13 @@ begin
   if not exists (select 1 from pg_type where typname = 'operation_type') then
     create type public.operation_type as enum ('sell', 'rent');
   end if;
+
+  if not exists (select 1 from pg_type where typname = 'property_status') then
+    create type public.property_status as enum ('available', 'sold', 'rented');
+  end if;
 end $$;
+
+create sequence if not exists public.property_code_seq;
 
 do $$
 begin
@@ -54,6 +60,9 @@ create table if not exists public.properties (
   employee_name text not null,
   mobile text not null,
   description text not null,
+  property_code text not null unique default ('KY-' || lpad(nextval('public.property_code_seq')::text, 5, '0')),
+  status public.property_status not null default 'available',
+  archived_at timestamptz,
   related_property_id uuid references public.properties(id) on delete set null,
   created_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now(),
@@ -62,7 +71,18 @@ create table if not exists public.properties (
 
 alter table public.users add column if not exists auth_id uuid unique references auth.users(id) on delete cascade;
 alter table public.users add column if not exists can_view_mobile boolean not null default false;
+alter table public.properties add column if not exists property_code text;
+alter table public.properties add column if not exists status public.property_status not null default 'available';
+alter table public.properties add column if not exists archived_at timestamptz;
 alter table public.properties add column if not exists related_property_id uuid references public.properties(id) on delete set null;
+
+update public.properties
+set property_code = 'KY-' || lpad(nextval('public.property_code_seq')::text, 5, '0')
+where property_code is null or btrim(property_code) = '';
+
+alter table public.properties
+  alter column property_code set default ('KY-' || lpad(nextval('public.property_code_seq')::text, 5, '0'));
+alter table public.properties alter column property_code set not null;
 
 drop index if exists public.properties_mobile_unique_idx;
 alter table public.properties drop constraint if exists properties_mobile_key;
@@ -71,6 +91,9 @@ create index if not exists properties_operation_idx on public.properties(operati
 create index if not exists properties_property_type_idx on public.properties(property_type);
 create index if not exists properties_mobile_idx on public.properties(mobile);
 create index if not exists properties_related_property_idx on public.properties(related_property_id);
+create unique index if not exists properties_property_code_key on public.properties(property_code);
+create index if not exists properties_status_idx on public.properties(status);
+create index if not exists properties_archived_at_idx on public.properties(archived_at);
 
 create or replace function public.touch_updated_at()
 returns trigger
@@ -91,6 +114,67 @@ drop trigger if exists properties_touch_updated_at on public.properties;
 create trigger properties_touch_updated_at
 before update on public.properties
 for each row execute function public.touch_updated_at();
+
+create or replace function public.sync_property_archive_state()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.status in ('sold', 'rented') and new.archived_at is null then
+    new.archived_at = now();
+  elsif new.status = 'available' then
+    new.archived_at = null;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists properties_sync_archive_state on public.properties;
+create trigger properties_sync_archive_state
+before insert or update on public.properties
+for each row execute function public.sync_property_archive_state();
+
+create or replace function public.protect_user_permissions()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if public.is_admin() then
+    return new;
+  end if;
+
+  if old.email is distinct from new.email
+    or old.role is distinct from new.role
+    or old.can_add_employee is distinct from new.can_add_employee
+    or old.can_edit_permissions is distinct from new.can_edit_permissions
+    or old.can_delete_employee is distinct from new.can_delete_employee
+    or old.can_add_property is distinct from new.can_add_property
+    or old.can_edit_property is distinct from new.can_edit_property
+    or old.can_delete_property is distinct from new.can_delete_property
+    or old.can_view_mobile is distinct from new.can_view_mobile
+    or old.can_view_all is distinct from new.can_view_all then
+    raise exception 'Only admins can update roles and permissions.';
+  end if;
+
+  if old.auth_id is not null and old.auth_id is distinct from new.auth_id then
+    raise exception 'Profile is already linked to another auth user.';
+  end if;
+
+  if new.auth_id is not null and new.auth_id <> auth.uid() then
+    raise exception 'Profile can only be linked to the current auth user.';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists users_protect_permissions on public.users;
+create trigger users_protect_permissions
+before update on public.users
+for each row execute function public.protect_user_permissions();
 
 create or replace function public.is_admin()
 returns boolean
@@ -122,6 +206,7 @@ as $$
   );
 $$;
 
+drop function if exists public.get_properties();
 create or replace function public.get_properties()
 returns table (
   id uuid,
@@ -131,6 +216,9 @@ returns table (
   employee_name text,
   mobile text,
   description text,
+  property_code text,
+  status public.property_status,
+  archived_at timestamptz,
   related_property_id uuid,
   created_by uuid,
   created_at timestamptz,
@@ -149,6 +237,9 @@ as $$
     p.employee_name,
     case when public.can_view_mobile() then p.mobile else '' end as mobile,
     p.description,
+    p.property_code,
+    p.status,
+    p.archived_at,
     p.related_property_id,
     p.created_by,
     p.created_at,
@@ -157,6 +248,7 @@ as $$
   order by p.created_at desc;
 $$;
 
+drop function if exists public.get_property_by_id(uuid);
 create or replace function public.get_property_by_id(property_id uuid)
 returns table (
   id uuid,
@@ -166,6 +258,9 @@ returns table (
   employee_name text,
   mobile text,
   description text,
+  property_code text,
+  status public.property_status,
+  archived_at timestamptz,
   related_property_id uuid,
   created_by uuid,
   created_at timestamptz,
@@ -184,6 +279,9 @@ as $$
     p.employee_name,
     case when public.can_view_mobile() then p.mobile else '' end as mobile,
     p.description,
+    p.property_code,
+    p.status,
+    p.archived_at,
     p.related_property_id,
     p.created_by,
     p.created_at,
@@ -193,6 +291,7 @@ as $$
   limit 1;
 $$;
 
+drop function if exists public.find_property_by_mobile(text, uuid);
 create or replace function public.find_property_by_mobile(
   lookup_mobile text,
   excluded_property_id uuid default null
@@ -205,6 +304,9 @@ returns table (
   employee_name text,
   mobile text,
   description text,
+  property_code text,
+  status public.property_status,
+  archived_at timestamptz,
   related_property_id uuid,
   created_by uuid,
   created_at timestamptz,
@@ -223,6 +325,9 @@ as $$
     p.employee_name,
     case when public.can_view_mobile() then p.mobile else '' end as mobile,
     p.description,
+    p.property_code,
+    p.status,
+    p.archived_at,
     p.related_property_id,
     p.created_by,
     p.created_at,
@@ -248,13 +353,11 @@ using (
 );
 
 drop policy if exists "users can create their own profile" on public.users;
-create policy "users can create their own profile"
+drop policy if exists "admins can create employee profiles" on public.users;
+create policy "admins can create employee profiles"
 on public.users for insert
 to authenticated
-with check (
-  public.is_admin()
-  or (auth_id = auth.uid() and email = (auth.jwt() ->> 'email'))
-);
+with check (public.is_admin());
 
 drop policy if exists "admins and owners can update profiles" on public.users;
 create policy "admins and owners can update profiles"

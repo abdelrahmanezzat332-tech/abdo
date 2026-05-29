@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Archive,
   Building2,
   ChevronRight,
   Home,
@@ -18,6 +19,7 @@ import { useState, type ReactNode } from "react";
 import { useAuth } from "@/context/auth-context";
 
 const navItems = [
+  { href: "/archive", label: "الأرشيف", icon: Archive },
   { href: "/choose-operation", label: "الرئيسية", icon: Home },
   { href: "/properties", label: "الوحدات", icon: Building2 },
   { href: "/admin", label: "لوحة الأدمن", icon: LayoutDashboard, admin: true },

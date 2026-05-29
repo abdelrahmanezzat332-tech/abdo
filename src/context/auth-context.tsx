@@ -14,7 +14,6 @@ import {
 
 import { getSupabase } from "@/lib/supabase";
 import type { UserProfile } from "@/lib/types";
-import { getDefaultProfilePermissions } from "@/lib/permissions";
 
 type AuthContextValue = {
   session: Session | null;
@@ -66,16 +65,7 @@ async function ensureProfile(user: User, fallbackName?: string) {
     return data as UserProfile;
   }
 
-  const profilePayload = {
-    auth_id: user.id,
-    full_name: fullName,
-    email,
-    ...getDefaultProfilePermissions(email)
-  };
-
-  const { data, error } = await supabase.from("users").insert(profilePayload).select("*").single();
-  if (error) throw error;
-  return data as UserProfile;
+  throw new Error("هذا البريد غير مسجل ضمن الموظفين. اطلب من المدير إضافته أولا.");
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -91,8 +81,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(data.session);
 
     if (currentUser) {
-      const currentProfile = await ensureProfile(currentUser);
-      setProfile(currentProfile);
+      try {
+        const currentProfile = await ensureProfile(currentUser);
+        setProfile(currentProfile);
+      } catch (error) {
+        await supabase.auth.signOut();
+        setSession(null);
+        setProfile(null);
+        throw error;
+      }
     } else {
       setProfile(null);
     }
@@ -102,15 +99,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabase = getSupabase();
     let mounted = true;
 
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!mounted) return;
-      setSession(data.session);
-      if (data.session?.user) {
-        const currentProfile = await ensureProfile(data.session.user);
-        if (mounted) setProfile(currentProfile);
-      }
-      if (mounted) setLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(async ({ data }) => {
+        if (!mounted) return;
+        setSession(data.session);
+        if (data.session?.user) {
+          const currentProfile = await ensureProfile(data.session.user);
+          if (mounted) setProfile(currentProfile);
+        }
+      })
+      .catch(async () => {
+        await supabase.auth.signOut();
+        if (mounted) {
+          setSession(null);
+          setProfile(null);
+        }
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
@@ -122,6 +130,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       ensureProfile(nextSession.user)
         .then(setProfile)
+        .catch(async () => {
+          await supabase.auth.signOut();
+          setSession(null);
+          setProfile(null);
+        })
         .finally(() => setLoading(false));
     });
 
@@ -135,7 +148,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabase = getSupabase();
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
-    if (data.user) setProfile(await ensureProfile(data.user));
+    if (data.user) {
+      try {
+        setProfile(await ensureProfile(data.user));
+      } catch (profileError) {
+        await supabase.auth.signOut();
+        setSession(null);
+        setProfile(null);
+        throw profileError;
+      }
+    }
   }, []);
 
   const signUp = useCallback(async (fullName: string, email: string, password: string) => {
@@ -146,7 +168,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       options: { data: { full_name: fullName } }
     });
     if (error) throw error;
-    if (data.session?.user) setProfile(await ensureProfile(data.session.user, fullName));
+    if (data.session?.user) {
+      try {
+        setProfile(await ensureProfile(data.session.user, fullName));
+      } catch (profileError) {
+        await supabase.auth.signOut();
+        setSession(null);
+        setProfile(null);
+        throw profileError;
+      }
+    }
   }, []);
 
   const signOut = useCallback(async () => {

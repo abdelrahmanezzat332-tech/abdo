@@ -14,7 +14,13 @@ import { hasPermission } from "@/lib/permissions";
 import { getSupabase } from "@/lib/supabase";
 import type { Property } from "@/lib/types";
 
-export function PropertiesView() {
+export function PropertiesView({
+  archivedOnly = false,
+  hideAddAction = false
+}: {
+  archivedOnly?: boolean;
+  hideAddAction?: boolean;
+}) {
   const searchParams = useSearchParams();
   const { profile } = useAuth();
   const { showToast } = useToast();
@@ -53,6 +59,10 @@ export function PropertiesView() {
     const employeeTerm = employee.trim().toLowerCase();
 
     return properties.filter((property) => {
+      const archived = property.status === "sold" || property.status === "rented";
+      if (archivedOnly && !archived) return false;
+      if (!archivedOnly && archived) return false;
+
       const matchesPhone = phoneTerm && canViewMobile ? property.mobile.includes(phoneTerm) : true;
       const matchesEmployee = employeeTerm ? property.employee_name.toLowerCase().includes(employeeTerm) : true;
       const matchesCity = city ? property.city === city : true;
@@ -60,7 +70,7 @@ export function PropertiesView() {
       const matchesOperation = operation ? property.operation === operation : true;
       return matchesPhone && matchesEmployee && matchesCity && matchesType && matchesOperation;
     });
-  }, [canViewMobile, city, employee, operation, properties, search, type]);
+  }, [archivedOnly, canViewMobile, city, employee, operation, properties, search, type]);
 
   async function deleteProperty(property: Property) {
     const confirmed = window.confirm(
@@ -145,7 +155,7 @@ export function PropertiesView() {
 
       <div className="list-toolbar">
         <span>{filteredProperties.length} وحدة</span>
-        {hasPermission(profile, "can_add_property") ? (
+        {!hideAddAction && hasPermission(profile, "can_add_property") ? (
           <Link className="primary-button compact" href="/properties/new">
             <Plus size={18} />
             إضافة وحدة

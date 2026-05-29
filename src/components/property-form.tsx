@@ -136,7 +136,7 @@ export function PropertyForm({ property }: { property?: Property }) {
         "success"
       );
 
-      if (form.status === "rented") {
+      if (form.status === "sold" || form.status === "rented") {
         router.push("/archive");
       } else {
         router.push(`/properties?operation=${form.operation}&city=${encodeURIComponent(form.city)}`);
