@@ -5,6 +5,12 @@ export const operations = [
   { value: "rent", label: "إيجار" }
 ] as const;
 
+export const propertyStatuses = [
+  { value: "available", label: "متوفرة" },
+  { value: "sold", label: "تم البيع" },
+  { value: "rented", label: "تم الإيجار" }
+] as const;
+
 export const cities = ["بدر", "الشروق", "مدينتي", "العبور"] as const;
 
 export const propertyTypes = [
