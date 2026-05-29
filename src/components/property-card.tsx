@@ -7,6 +7,18 @@ import { formatDate, operationLabel } from "@/lib/format";
 import { canManageProperty, hasPermission } from "@/lib/permissions";
 import type { Property, UserProfile } from "@/lib/types";
 
+function statusLabel(status: Property["status"]) {
+  if (status === "sold") return "تم البيع";
+  if (status === "rented") return "تم الإيجار";
+  return "متوفرة";
+}
+
+function statusClass(status: Property["status"]) {
+  if (status === "sold") return "status-sold";
+  if (status === "rented") return "status-rented";
+  return "status-available";
+}
+
 export function PropertyCard({
   property,
   profile,
@@ -27,8 +39,16 @@ export function PropertyCard({
           <span className={`badge ${property.operation === "sell" ? "badge-gold" : "badge-blue"}`}>
             {operationLabel(property.operation)}
           </span>
+
           <span className="muted-pill">{property.property_type}</span>
+
+          <span className="muted-pill">كود: {property.property_code ?? "تلقائي"}</span>
+
+          <span className={`muted-pill ${statusClass(property.status)}`}>
+            {statusLabel(property.status)}
+          </span>
         </div>
+
         {property.related_property_id ? <span className="linked-pill">نفس رقم وحدة أخرى</span> : null}
       </div>
 
@@ -44,10 +64,12 @@ export function PropertyCard({
           <UserRound size={16} />
           {property.employee_name}
         </span>
+
         <span>
           <Phone size={16} />
           {canViewMobile ? property.mobile : "رقم مخفي"}
         </span>
+
         <span>
           <CalendarDays size={16} />
           {formatDate(property.created_at)}
@@ -62,6 +84,7 @@ export function PropertyCard({
               تعديل
             </Link>
           ) : null}
+
           {canDelete ? (
             <button className="soft-button danger" type="button" onClick={() => onDelete(property)}>
               <Trash2 size={16} />
