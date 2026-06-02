@@ -62,7 +62,7 @@ export function CustomersView() {
     if (!confirmed) return;
 
     const supabase = getSupabase();
-    const { error } = await supabase.from("customers").delete().eq("id", customer.id);
+    const { error } = await supabase.rpc("delete_customer", { p_customer_id: customer.id });
     if (error) {
       showToast(error.message, "error");
       return;

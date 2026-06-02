@@ -97,7 +97,15 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
       };
 
       const request = customer
-        ? supabase.from("customers").update(payload).eq("id", customer.id)
+        ? supabase.rpc("update_customer", {
+            p_customer_id: customer.id,
+            p_customer_name: form.customer_name.trim() || null,
+            p_mobile: mobileIsHidden ? null : mobile,
+            p_keep_existing_mobile: mobileIsHidden,
+            p_city: form.city,
+            p_budget: form.budget.trim(),
+            p_notes: form.notes.trim()
+          })
         : supabase.from("customers").insert(payload);
 
       const { error } = await request;

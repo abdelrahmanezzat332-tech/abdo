@@ -81,7 +81,7 @@ export function PropertiesView({
     if (!confirmed) return;
 
     const supabase = getSupabase();
-    const { error } = await supabase.from("properties").delete().eq("id", property.id);
+    const { error } = await supabase.rpc("delete_property", { p_property_id: property.id });
     if (error) {
       showToast(error.message, "error");
       return;

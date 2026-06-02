@@ -53,7 +53,7 @@ export function AdminDashboard() {
   async function deleteProperty(property: Property) {
     if (!window.confirm(canViewMobile ? `حذف الوحدة المرتبطة بالرقم ${property.mobile}؟` : "حذف هذه الوحدة؟")) return;
     const supabase = getSupabase();
-    const { error } = await supabase.from("properties").delete().eq("id", property.id);
+    const { error } = await supabase.rpc("delete_property", { p_property_id: property.id });
     if (error) {
       showToast(error.message, "error");
       return;

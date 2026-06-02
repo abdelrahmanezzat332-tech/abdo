@@ -121,7 +121,18 @@ export function PropertyForm({ property }: { property?: Property }) {
       };
 
       const request = property
-        ? supabase.from("properties").update(payload).eq("id", property.id)
+        ? supabase.rpc("update_property", {
+            p_property_id: property.id,
+            p_operation: form.operation,
+            p_city: form.city,
+            p_property_type: form.property_type,
+            p_employee_name: form.employee_name.trim(),
+            p_mobile: mobileIsHidden ? null : mobile,
+            p_keep_existing_mobile: mobileIsHidden,
+            p_description: form.description.trim(),
+            p_status: form.status,
+            p_related_property_id: existing?.id ?? property.related_property_id ?? null
+          })
         : supabase.from("properties").insert(payload);
 
       const { error } = await request;
