@@ -16,6 +16,7 @@ begin
 end $$;
 
 create sequence if not exists public.property_code_seq;
+create sequence if not exists public.customer_code_seq start with 20000 increment by 1;
 
 do $$
 begin
@@ -46,7 +47,11 @@ create table if not exists public.users (
   can_add_property boolean not null default true,
   can_edit_property boolean not null default false,
   can_delete_property boolean not null default false,
+  can_add_customer boolean not null default true,
+  can_edit_customer boolean not null default false,
+  can_delete_customer boolean not null default false,
   can_view_mobile boolean not null default false,
+  can_view_customer_mobile boolean not null default false,
   can_view_all boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -69,12 +74,30 @@ create table if not exists public.properties (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.customers (
+  id uuid primary key default gen_random_uuid(),
+  customer_code text not null unique default (nextval('public.customer_code_seq')::text),
+  customer_name text,
+  mobile text not null,
+  city text not null check (city in ('بدر', 'الشروق', 'مدينتي', 'العبور')),
+  budget text not null,
+  notes text not null,
+  created_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 alter table public.users add column if not exists auth_id uuid unique references auth.users(id) on delete cascade;
 alter table public.users add column if not exists can_view_mobile boolean not null default false;
+alter table public.users add column if not exists can_add_customer boolean not null default true;
+alter table public.users add column if not exists can_edit_customer boolean not null default false;
+alter table public.users add column if not exists can_delete_customer boolean not null default false;
+alter table public.users add column if not exists can_view_customer_mobile boolean not null default false;
 alter table public.properties add column if not exists property_code text;
 alter table public.properties add column if not exists status public.property_status not null default 'available';
 alter table public.properties add column if not exists archived_at timestamptz;
 alter table public.properties add column if not exists related_property_id uuid references public.properties(id) on delete set null;
+alter table public.customers add column if not exists customer_name text;
 
 update public.properties
 set property_code = 'KY-' || lpad(nextval('public.property_code_seq')::text, 5, '0')
@@ -94,6 +117,10 @@ create index if not exists properties_related_property_idx on public.properties(
 create unique index if not exists properties_property_code_key on public.properties(property_code);
 create index if not exists properties_status_idx on public.properties(status);
 create index if not exists properties_archived_at_idx on public.properties(archived_at);
+create unique index if not exists customers_customer_code_key on public.customers(customer_code);
+create index if not exists customers_city_idx on public.customers(city);
+create index if not exists customers_mobile_idx on public.customers(mobile);
+create index if not exists customers_created_by_idx on public.customers(created_by);
 
 create or replace function public.touch_updated_at()
 returns trigger
@@ -113,6 +140,11 @@ for each row execute function public.touch_updated_at();
 drop trigger if exists properties_touch_updated_at on public.properties;
 create trigger properties_touch_updated_at
 before update on public.properties
+for each row execute function public.touch_updated_at();
+
+drop trigger if exists customers_touch_updated_at on public.customers;
+create trigger customers_touch_updated_at
+before update on public.customers
 for each row execute function public.touch_updated_at();
 
 create or replace function public.sync_property_archive_state()
@@ -154,7 +186,11 @@ begin
     or old.can_add_property is distinct from new.can_add_property
     or old.can_edit_property is distinct from new.can_edit_property
     or old.can_delete_property is distinct from new.can_delete_property
+    or old.can_add_customer is distinct from new.can_add_customer
+    or old.can_edit_customer is distinct from new.can_edit_customer
+    or old.can_delete_customer is distinct from new.can_delete_customer
     or old.can_view_mobile is distinct from new.can_view_mobile
+    or old.can_view_customer_mobile is distinct from new.can_view_customer_mobile
     or old.can_view_all is distinct from new.can_view_all then
     raise exception 'Only admins can update roles and permissions.';
   end if;
@@ -203,6 +239,21 @@ as $$
     from public.users
     where auth_id = auth.uid()
       and (role = 'admin' or can_view_mobile = true or can_view_all = true)
+  );
+$$;
+
+create or replace function public.can_view_customer_mobile()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.users
+    where auth_id = auth.uid()
+      and (role = 'admin' or can_view_customer_mobile = true or can_view_all = true)
   );
 $$;
 
@@ -339,8 +390,78 @@ as $$
   limit 1;
 $$;
 
+drop function if exists public.get_customers();
+create or replace function public.get_customers()
+returns table (
+  id uuid,
+  customer_code text,
+  customer_name text,
+  mobile text,
+  city text,
+  budget text,
+  notes text,
+  created_by uuid,
+  created_at timestamptz,
+  updated_at timestamptz
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    c.id,
+    c.customer_code,
+    c.customer_name,
+    case when public.can_view_customer_mobile() then c.mobile else '' end as mobile,
+    c.city,
+    c.budget,
+    c.notes,
+    c.created_by,
+    c.created_at,
+    c.updated_at
+  from public.customers c
+  order by c.created_at desc;
+$$;
+
+drop function if exists public.get_customer_by_id(uuid);
+create or replace function public.get_customer_by_id(customer_id uuid)
+returns table (
+  id uuid,
+  customer_code text,
+  customer_name text,
+  mobile text,
+  city text,
+  budget text,
+  notes text,
+  created_by uuid,
+  created_at timestamptz,
+  updated_at timestamptz
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    c.id,
+    c.customer_code,
+    c.customer_name,
+    case when public.can_view_customer_mobile() then c.mobile else '' end as mobile,
+    c.city,
+    c.budget,
+    c.notes,
+    c.created_by,
+    c.created_at,
+    c.updated_at
+  from public.customers c
+  where c.id = customer_id
+  limit 1;
+$$;
+
 alter table public.users enable row level security;
 alter table public.properties enable row level security;
+alter table public.customers enable row level security;
 
 drop policy if exists "users can read own profile or admins read all" on public.users;
 create policy "users can read own profile or admins read all"
@@ -436,6 +557,63 @@ using (
   )
 );
 
+drop policy if exists "permitted users can read customers directly" on public.customers;
+create policy "permitted users can read customers directly"
+on public.customers for select
+to authenticated
+using (public.can_view_customer_mobile());
+
+drop policy if exists "permitted users can insert customers" on public.customers;
+create policy "permitted users can insert customers"
+on public.customers for insert
+to authenticated
+with check (
+  created_by = auth.uid()
+  and exists (
+    select 1
+    from public.users
+    where auth_id = auth.uid()
+      and (role = 'admin' or can_add_customer = true)
+  )
+);
+
+drop policy if exists "permitted users can update customers" on public.customers;
+create policy "permitted users can update customers"
+on public.customers for update
+to authenticated
+using (
+  public.is_admin()
+  or exists (
+    select 1
+    from public.users
+    where auth_id = auth.uid()
+      and can_edit_customer = true
+  )
+)
+with check (
+  public.is_admin()
+  or exists (
+    select 1
+    from public.users
+    where auth_id = auth.uid()
+      and can_edit_customer = true
+  )
+);
+
+drop policy if exists "permitted users can delete customers" on public.customers;
+create policy "permitted users can delete customers"
+on public.customers for delete
+to authenticated
+using (
+  public.is_admin()
+  or exists (
+    select 1
+    from public.users
+    where auth_id = auth.uid()
+      and can_delete_customer = true
+  )
+);
+
 insert into public.users (
   full_name,
   email,
@@ -446,13 +624,21 @@ insert into public.users (
   can_add_property,
   can_edit_property,
   can_delete_property,
+  can_add_customer,
+  can_edit_customer,
+  can_delete_customer,
   can_view_mobile,
+  can_view_customer_mobile,
   can_view_all
 )
 values (
   'Abdelrahman',
   'abdelrahmanezzat332@gmail.com',
   'admin',
+  true,
+  true,
+  true,
+  true,
   true,
   true,
   true,
@@ -472,5 +658,9 @@ set
   can_add_property = true,
   can_edit_property = true,
   can_delete_property = true,
+  can_add_customer = true,
+  can_edit_customer = true,
+  can_delete_customer = true,
   can_view_mobile = true,
+  can_view_customer_mobile = true,
   can_view_all = true;

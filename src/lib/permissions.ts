@@ -16,7 +16,11 @@ export function getDefaultProfilePermissions(email: string) {
     can_add_property: true,
     can_edit_property: isAdmin,
     can_delete_property: isAdmin,
+    can_add_customer: true,
+    can_edit_customer: isAdmin,
+    can_delete_customer: isAdmin,
     can_view_mobile: isAdmin,
+    can_view_customer_mobile: isAdmin,
     can_view_all: isAdmin
   } as const;
 }
@@ -29,4 +33,9 @@ export function hasPermission(profile: UserProfile | null, permission: Permissio
 export function canManageProperty(profile: UserProfile | null, action: "edit" | "delete") {
   if (action === "edit") return hasPermission(profile, "can_edit_property");
   return hasPermission(profile, "can_delete_property");
+}
+
+export function canManageCustomer(profile: UserProfile | null, action: "edit" | "delete") {
+  if (action === "edit") return hasPermission(profile, "can_edit_customer");
+  return hasPermission(profile, "can_delete_customer");
 }

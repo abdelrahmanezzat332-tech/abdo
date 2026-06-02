@@ -91,7 +91,11 @@ export function EmployeeManagement({ mode }: { mode: "employees" | "permissions"
       can_add_property: employee.can_add_property,
       can_edit_property: employee.can_edit_property,
       can_delete_property: employee.can_delete_property,
+      can_add_customer: employee.can_add_customer,
+      can_edit_customer: employee.can_edit_customer,
+      can_delete_customer: employee.can_delete_customer,
       can_view_mobile: employee.can_view_mobile,
+      can_view_customer_mobile: employee.can_view_customer_mobile,
       can_view_all: employee.can_view_all
     };
 

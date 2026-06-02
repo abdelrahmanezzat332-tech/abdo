@@ -33,6 +33,10 @@ export const permissionLabels = {
   can_add_property: "إضافة وحدات",
   can_edit_property: "تعديل الوحدات",
   can_delete_property: "حذف الوحدات",
+  can_add_customer: "إضافة عملاء",
+  can_edit_customer: "تعديل العملاء",
+  can_delete_customer: "حذف العملاء",
   can_view_mobile: "رؤية رقم الموبايل",
+  can_view_customer_mobile: "رؤية رقم موبايل العملاء",
   can_view_all: "رؤية كل البيانات"
 } as const;

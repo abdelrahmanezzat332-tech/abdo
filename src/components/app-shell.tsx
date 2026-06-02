@@ -9,6 +9,7 @@ import {
   LogOut,
   Menu,
   ShieldCheck,
+  UserRound,
   Users,
   X
 } from "lucide-react";
@@ -22,6 +23,7 @@ const navItems = [
   { href: "/archive", label: "الأرشيف", icon: Archive },
   { href: "/choose-operation", label: "الرئيسية", icon: Home },
   { href: "/properties", label: "الوحدات", icon: Building2 },
+  { href: "/customers", label: "العميل", icon: UserRound },
   { href: "/admin", label: "لوحة الأدمن", icon: LayoutDashboard, admin: true },
   { href: "/admin/employees", label: "الموظفون", icon: Users, admin: true },
   { href: "/admin/permissions", label: "الصلاحيات", icon: ShieldCheck, admin: true }

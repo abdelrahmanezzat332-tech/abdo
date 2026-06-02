@@ -26,7 +26,11 @@ export type UserProfile = {
   can_add_property: boolean;
   can_edit_property: boolean;
   can_delete_property: boolean;
+  can_add_customer: boolean;
+  can_edit_customer: boolean;
+  can_delete_customer: boolean;
   can_view_mobile: boolean;
+  can_view_customer_mobile: boolean;
   can_view_all: boolean;
   created_at: string;
   updated_at: string;
@@ -50,3 +54,18 @@ export type Property = {
 };
 
 export type PropertyInput = Omit<Property, "id" | "created_at" | "updated_at">;
+
+export type Customer = {
+  id: string;
+  customer_code: string;
+  customer_name: string | null;
+  mobile: string;
+  city: City;
+  budget: string;
+  notes: string;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CustomerInput = Omit<Customer, "id" | "customer_code" | "created_at" | "updated_at">;
