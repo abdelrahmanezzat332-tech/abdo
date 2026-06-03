@@ -245,12 +245,13 @@ for each row execute function public.sync_property_code_on_operation_change();
 create or replace function public.assign_property_code_on_insert()
 returns trigger language plpgsql as $$
 begin
-  -- always assign a fresh sequenced code on insert (ignore any supplied value)
-  new.property_code :=
-    case new.operation
-      when 'sell' then 'KY-S-' || lpad(nextval('public.property_sell_seq')::text, 5, '0')
-      else             'KY-R-' || lpad(nextval('public.property_rent_seq')::text, 5, '0')
-    end;
+  if new.property_code is null or btrim(new.property_code) = '' then
+    new.property_code :=
+      case new.operation
+        when 'sell' then 'KY-S-' || lpad(nextval('public.property_sell_seq')::text, 5, '0')
+        else             'KY-R-' || lpad(nextval('public.property_rent_seq')::text, 5, '0')
+      end;
+  end if;
   return new;
 end;
 $$;
@@ -410,7 +411,77 @@ as $$
     and p.mobile = lookup_mobile
     and (excluded_property_id is null or p.id <> excluded_property_id)
     and p.status = 'available'
+    and p.archived_at is null
   limit 1;
+$$;
+
+-- ── create_property ─────────────────────────────────────────────────────────
+drop function if exists public.create_property(public.operation_type, text, text, text, text, text, text, public.property_status, uuid);
+create or replace function public.create_property(
+  p_operation            public.operation_type,
+  p_city                 text,
+  p_property_type        text,
+  p_employee_name        text,
+  p_mobile               text,
+  p_description          text,
+  p_price                text,
+  p_status               public.property_status default 'available',
+  p_related_property_id  uuid default null
+)
+returns uuid
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_property_id uuid;
+  v_property_code text;
+begin
+  if auth.uid() is null then
+    raise exception 'Authentication is required.';
+  end if;
+
+  if not exists (
+    select 1 from public.users
+    where auth_id = auth.uid()
+      and (role = 'admin' or can_add_property = true)
+  ) then
+    raise exception 'You do not have permission to add properties.';
+  end if;
+
+  if p_city is null or btrim(p_city) = '' then
+    raise exception 'City is required.';
+  end if;
+
+  if p_mobile is null or btrim(p_mobile) = '' then
+    raise exception 'Mobile number is required.';
+  end if;
+
+  if p_employee_name is null or btrim(p_employee_name) = '' then
+    raise exception 'Employee name is required.';
+  end if;
+
+  if p_description is null or btrim(p_description) = '' then
+    raise exception 'Description is required.';
+  end if;
+
+  v_property_code :=
+    case p_operation
+      when 'sell' then 'KY-S-' || lpad(nextval('public.property_sell_seq')::text, 5, '0')
+      else             'KY-R-' || lpad(nextval('public.property_rent_seq')::text, 5, '0')
+    end;
+
+  insert into public.properties (
+    operation, city, property_type, employee_name, mobile,
+    description, price, status, related_property_id, created_by, property_code
+  )
+  values (
+    p_operation, btrim(p_city), p_property_type, btrim(p_employee_name), p_mobile,
+    btrim(p_description), btrim(coalesce(p_price, '')), coalesce(p_status, 'available'),
+    p_related_property_id, auth.uid(), v_property_code
+  )
+  returning id into v_property_id;
+
+  return v_property_id;
+end;
 $$;
 
 -- ── update_property ──────────────────────────────────────────────────────────

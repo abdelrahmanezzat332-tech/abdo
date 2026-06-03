@@ -138,17 +138,16 @@ export function PropertyForm({ property }: { property?: Property }) {
             p_status: form.status,
             p_related_property_id: existing?.id ?? property.related_property_id ?? null
           })
-        : supabase.from("properties").insert({
-            operation: form.operation,
-            city,
-            property_type: form.property_type,
-            employee_name: form.employee_name.trim(),
-            mobile,
-            description: form.description.trim(),
-            price: form.price.trim(),
-            status: form.status,
-            related_property_id: existing?.id ?? null,
-            created_by: user.id
+        : supabase.rpc("create_property", {
+            p_operation: form.operation,
+            p_city: city,
+            p_property_type: form.property_type,
+            p_employee_name: form.employee_name.trim(),
+            p_mobile: mobile,
+            p_description: form.description.trim(),
+            p_price: form.price.trim(),
+            p_status: form.status,
+            p_related_property_id: existing?.id ?? null
           });
 
       const { error } = await request;

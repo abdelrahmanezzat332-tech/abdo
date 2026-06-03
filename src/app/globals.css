@@ -603,9 +603,8 @@ label span {
 /* ── Properties / Customers grid ─────────────────── */
 .properties-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  /* align-items: start keeps cards their natural height instead of stretching */
-  align-items: start;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr));
+  align-items: stretch;
   gap: 1rem;
 }
 
@@ -633,6 +632,10 @@ label span {
 
 .customer-card {
   min-height: 260px;
+}
+
+.unit-card {
+  min-height: 300px;
 }
 
 /* ── Card topline ────────────────────────────────── */
@@ -701,12 +704,24 @@ label span {
   -webkit-line-clamp: 4;
 }
 
+.unit-card .property-description {
+  display: -webkit-box;
+  overflow: hidden;
+  min-height: 6.4rem;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
+
 /* ── Meta row ────────────────────────────────────── */
 .property-meta {
   display: grid;
   gap: 0.4rem;
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+.unit-card .property-meta {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .property-meta span {
@@ -727,6 +742,8 @@ label span {
   margin-top: auto;
   padding-top: 0.25rem;
   border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+  justify-content: flex-start;
 }
 
 /* ── Duplicate / permission notes ───────────────── */
@@ -1122,5 +1139,9 @@ label span {
   .soft-button,
   .primary-button.compact {
     width: 100%;
+  }
+
+  .unit-card .property-meta {
+    grid-template-columns: 1fr;
   }
 }

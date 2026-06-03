@@ -21,6 +21,10 @@ export function CustomersView({ archivedOnly = false }: { archivedOnly?: boolean
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("");
   const canViewMobile = hasPermission(profile, "can_view_customer_mobile");
+  const cityOptions = useMemo(
+    () => Array.from(new Set<string>([...cities, ...customers.map((customer) => customer.city).filter(Boolean)])),
+    [customers]
+  );
 
   async function loadCustomers() {
     setLoading(true);
@@ -118,7 +122,7 @@ export function CustomersView({ archivedOnly = false }: { archivedOnly?: boolean
             <span>المدينة</span>
             <select value={city} onChange={(e) => setCity(e.target.value)}>
               <option value="">كل المدن</option>
-              {cities.map((c) => (
+              {cityOptions.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>

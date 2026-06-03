@@ -21,7 +21,7 @@ export default function EditPropertyPage() {
   useEffect(() => {
     async function loadProperty() {
       const supabase = getSupabase();
-      const { data, error } = await supabase.rpc("get_property_by_id", { property_id: params.id }).single();
+      const { data, error } = await supabase.rpc("get_property_by_id", { p_property_id: params.id }).single();
       if (error) showToast(error.message, "error");
       setProperty((data as Property) ?? null);
       setLoading(false);

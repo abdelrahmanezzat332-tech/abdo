@@ -38,7 +38,7 @@ export function PropertyCard({
   const isArchived = Boolean(property.archived_at) || property.status === "sold" || property.status === "rented";
 
   return (
-    <article className="property-card">
+    <article className="property-card unit-card">
       {/* ── Badges ── */}
       <div className="card-topline">
         <div className="card-badges">
@@ -73,7 +73,7 @@ export function PropertyCard({
         {property.price ? (
           <span className="property-price"><Banknote size={15} />{property.price}</span>
         ) : null}
-          <span><CalendarDays size={15} />{formatDate(property.created_at)}</span>
+        <span><CalendarDays size={15} />{formatDate(property.created_at)}</span>
         {isArchived && property.archived_at ? (
           <span><Archive size={15} />أُرشف: {formatDate(property.archived_at)}</span>
         ) : null}
