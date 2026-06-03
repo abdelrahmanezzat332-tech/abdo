@@ -64,7 +64,7 @@ create table if not exists public.users (
 create table if not exists public.properties (
   id uuid primary key default gen_random_uuid(),
   operation public.operation_type not null,
-  city text not null check (city in ('بدر', 'الشروق', 'مدينتي', 'العبور')),
+  city text not null check (length(btrim(city)) > 0),
   property_type text not null check (property_type in ('شقق', 'فلل', 'عمارات', 'محلات', 'استوديو', 'دوبلكس', 'أراضي', 'إداري', 'تجاري', 'أخرى')),
   employee_name text not null,
   mobile text not null,
@@ -188,7 +188,9 @@ returns trigger language plpgsql as $$
 begin
   if new.status in ('sold', 'rented') and new.archived_at is null then
     new.archived_at = now();
-  elsif new.status = 'available' then
+  elsif TG_OP = 'INSERT' and new.status = 'available' then
+    new.archived_at = null;
+  elsif TG_OP = 'UPDATE' and new.status = 'available' and old.status is distinct from new.status then
     new.archived_at = null;
   end if;
   return new;
@@ -465,6 +467,49 @@ begin
   if not found then
     raise exception 'Property was not found.';
   end if;
+end;
+$$;
+
+-- ── archive_property / unarchive_property ───────────────────────────────────
+drop function if exists public.archive_property(uuid);
+create or replace function public.archive_property(p_property_id uuid)
+returns void language plpgsql security definer set search_path = public
+as $$
+begin
+  if auth.uid() is null then raise exception 'Authentication is required.'; end if;
+  if not exists (
+    select 1 from public.users
+    where auth_id = auth.uid()
+      and (role = 'admin' or can_edit_property = true)
+  ) then raise exception 'You do not have permission to archive properties.'; end if;
+
+  update public.properties
+  set archived_at = now()
+  where id = p_property_id and archived_at is null;
+
+  if not found then raise exception 'Property not found or already archived.'; end if;
+end;
+$$;
+
+drop function if exists public.unarchive_property(uuid);
+create or replace function public.unarchive_property(p_property_id uuid)
+returns void language plpgsql security definer set search_path = public
+as $$
+begin
+  if auth.uid() is null then raise exception 'Authentication is required.'; end if;
+  if not exists (
+    select 1 from public.users
+    where auth_id = auth.uid()
+      and (role = 'admin' or can_edit_property = true)
+  ) then raise exception 'You do not have permission to unarchive properties.'; end if;
+
+  update public.properties
+  set status = 'available',
+      archived_at = null
+  where id = p_property_id
+    and (archived_at is not null or status in ('sold', 'rented'));
+
+  if not found then raise exception 'Property not found or not archived.'; end if;
 end;
 $$;
 

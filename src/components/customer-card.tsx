@@ -1,6 +1,6 @@
 "use client";
 
-import { Archive, Banknote, CalendarDays, Edit3, MapPin, Phone, StickyNote, Trash2, UserRound } from "lucide-react";
+import { Archive, Banknote, CalendarDays, Edit3, MapPin, Phone, Trash2, UserRound } from "lucide-react";
 import Link from "next/link";
 
 import { formatDate } from "@/lib/format";
@@ -27,7 +27,7 @@ export function CustomerCard({
   const isArchived = Boolean(customer.archived_at);
 
   return (
-    <article className="property-card">
+    <article className="property-card customer-card">
       {/* ── Badges ── */}
       <div className="card-topline">
         <div className="card-badges">
@@ -44,16 +44,13 @@ export function CustomerCard({
       </div>
 
       {/* ── Notes — flex-grow pushes meta to bottom ── */}
-      <p className="property-description">{customer.notes || "—"}</p>
+      <p className="property-description customer-description">{customer.notes || "—"}</p>
 
       {/* ── Meta ── */}
       <div className="property-meta">
         <span><UserRound size={15} />{customerName}</span>
         <span><Phone size={15} />{canViewMobile ? customer.mobile : "رقم مخفي"}</span>
         <span><Banknote size={15} />{customer.budget}</span>
-        {customer.notes && (
-          <span><StickyNote size={15} />{customer.notes}</span>
-        )}
         <span><CalendarDays size={15} />{formatDate(customer.created_at)}</span>
         {isArchived && customer.archived_at ? (
           <span><Archive size={15} />أُرشف: {formatDate(customer.archived_at)}</span>

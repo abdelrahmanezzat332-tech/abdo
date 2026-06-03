@@ -609,6 +609,13 @@ label span {
   gap: 1rem;
 }
 
+.customers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  align-items: stretch;
+  gap: 1rem;
+}
+
 /* ── Card base ───────────────────────────────────── */
 .property-card,
 .employee-card {
@@ -622,6 +629,10 @@ label span {
 .property-card:hover,
 .employee-card:hover {
   box-shadow: var(--shadow);
+}
+
+.customer-card {
+  min-height: 260px;
 }
 
 /* ── Card topline ────────────────────────────────── */
@@ -683,6 +694,13 @@ label span {
   word-break: break-word;
 }
 
+.customer-description {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
 /* ── Meta row ────────────────────────────────────── */
 .property-meta {
   display: grid;
@@ -695,6 +713,8 @@ label span {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .property-price {
@@ -951,6 +971,11 @@ label span {
   background: rgba(199, 155, 54, 0.16);
 }
 
+.status-archived {
+  color: #334155;
+  background: rgba(51, 65, 85, 0.12);
+}
+
 /* ── Animations ──────────────────────────────────── */
 @keyframes spin {
   to { transform: rotate(360deg); }
@@ -968,6 +993,7 @@ label span {
 /* ── Breakpoint: ≤ 1180px ────────────────────────── */
 @media (max-width: 1180px) {
   .properties-grid,
+  .customers-grid,
   .stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1070,6 +1096,7 @@ label span {
 
   .choice-grid,
   .properties-grid,
+  .customers-grid,
   .stats-grid,
   .admin-shortcuts,
   .filters-grid,

@@ -21,7 +21,7 @@ export default function EditCustomerPage() {
   useEffect(() => {
     async function loadCustomer() {
       const supabase = getSupabase();
-      const { data, error } = await supabase.rpc("get_customer_by_id", { customer_id: params.id }).single();
+      const { data, error } = await supabase.rpc("get_customer_by_id", { p_customer_id: params.id }).single();
       if (error) showToast(error.message, "error");
       setCustomer((data as Customer) ?? null);
       setLoading(false);

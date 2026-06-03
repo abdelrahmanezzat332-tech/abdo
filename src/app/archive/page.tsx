@@ -12,7 +12,7 @@ export default function ArchivePage() {
         <PageHeading
           eyebrow="الأرشيف"
           title="الوحدات المؤرشفة"
-          description="عرض الوحدات التي تم بيعها أو تأجيرها مع إمكانية البحث والفلترة حسب الصلاحيات."
+          description="عرض الوحدات التي تم أرشفتها أو بيعها أو تأجيرها مع إمكانية البحث والفلترة حسب الصلاحيات."
         />
         <Suspense fallback={<div className="panel">جاري تحميل الأرشيف...</div>}>
           <PropertiesView archivedOnly hideAddAction />

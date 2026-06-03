@@ -40,7 +40,7 @@ export type Property = {
   id: string;
   property_code: string | null;
   operation: Operation;
-  city: City;
+  city: string;
   property_type: PropertyType;
   employee_name: string;
   mobile: string;

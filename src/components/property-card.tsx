@@ -1,6 +1,6 @@
 "use client";
 
-import { Banknote, CalendarDays, Edit3, MapPin, Phone, Trash2, UserRound } from "lucide-react";
+import { Archive, Banknote, CalendarDays, Edit3, MapPin, Phone, Trash2, UserRound } from "lucide-react";
 import Link from "next/link";
 
 import { formatDate, operationLabel } from "@/lib/format";
@@ -22,15 +22,20 @@ function statusClass(status: Property["status"]) {
 export function PropertyCard({
   property,
   profile,
-  onDelete
+  onDelete,
+  onArchive,
+  onUnarchive
 }: {
   property: Property;
   profile: UserProfile | null;
   onDelete: (property: Property) => void;
+  onArchive?: (property: Property) => void;
+  onUnarchive?: (property: Property) => void;
 }) {
   const canEdit = canManageProperty(profile, "edit");
   const canDelete = canManageProperty(profile, "delete");
   const canViewMobile = hasPermission(profile, "can_view_mobile");
+  const isArchived = Boolean(property.archived_at) || property.status === "sold" || property.status === "rented";
 
   return (
     <article className="property-card">
@@ -45,6 +50,7 @@ export function PropertyCard({
           <span className={`muted-pill ${statusClass(property.status)}`}>
             {statusLabel(property.status)}
           </span>
+          {isArchived ? <span className="muted-pill status-archived">مؤرشف</span> : null}
         </div>
         {property.related_property_id ? (
           <span className="linked-pill">نفس رقم وحدة أخرى</span>
@@ -67,17 +73,32 @@ export function PropertyCard({
         {property.price ? (
           <span className="property-price"><Banknote size={15} />{property.price}</span>
         ) : null}
-        <span><CalendarDays size={15} />{formatDate(property.created_at)}</span>
+          <span><CalendarDays size={15} />{formatDate(property.created_at)}</span>
+        {isArchived && property.archived_at ? (
+          <span><Archive size={15} />أُرشف: {formatDate(property.archived_at)}</span>
+        ) : null}
       </div>
 
       {/* ── Actions ── */}
       {(canEdit || canDelete) && (
         <div className="card-actions">
-          {canEdit ? (
+          {canEdit && !isArchived ? (
             <Link className="soft-button" href={`/properties/${property.id}/edit`}>
               <Edit3 size={15} />
               تعديل
             </Link>
+          ) : null}
+          {canEdit && !isArchived && onArchive ? (
+            <button className="soft-button" type="button" onClick={() => onArchive(property)}>
+              <Archive size={15} />
+              أرشفة
+            </button>
+          ) : null}
+          {canEdit && isArchived && onUnarchive ? (
+            <button className="soft-button" type="button" onClick={() => onUnarchive(property)}>
+              <Archive size={15} />
+              استعادة
+            </button>
           ) : null}
           {canDelete ? (
             <button className="soft-button danger" type="button" onClick={() => onDelete(property)}>

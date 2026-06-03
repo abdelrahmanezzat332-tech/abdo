@@ -12,6 +12,8 @@ import { hasPermission } from "@/lib/permissions";
 import { getSupabase } from "@/lib/supabase";
 import type { Operation, Property, PropertyStatus } from "@/lib/types";
 
+const OTHER_CITY_VALUE = "__other_city__";
+
 type FormState = {
   operation: Operation;
   city: string;
@@ -64,10 +66,21 @@ export function PropertyForm({ property }: { property?: Property }) {
 
   const canViewMobile = hasPermission(profile, "can_view_mobile");
   const mobileIsHidden = Boolean(property && !canViewMobile);
+  const selectedCityIsCustom = !cities.includes(form.city as (typeof cities)[number]);
+  const citySelectValue = selectedCityIsCustom ? OTHER_CITY_VALUE : form.city;
 
   function updateField(name: keyof FormState, value: string) {
     setForm((current) => ({ ...current, [name]: value }));
     if (name === "mobile") setRelatedProperty(null);
+  }
+
+  function updateCitySelection(value: string) {
+    if (value === OTHER_CITY_VALUE) {
+      setForm((current) => ({ ...current, city: selectedCityIsCustom ? current.city : "" }));
+      return;
+    }
+
+    updateField("city", value);
   }
 
   async function findRelatedMobile(mobile: string) {
@@ -96,6 +109,12 @@ export function PropertyForm({ property }: { property?: Property }) {
       return;
     }
 
+    const city = form.city.trim();
+    if (!city) {
+      showToast("برجاء إدخال اسم المدينة", "error");
+      return;
+    }
+
     setSaving(true);
     setRelatedProperty(null);
 
@@ -109,7 +128,7 @@ export function PropertyForm({ property }: { property?: Property }) {
         ? supabase.rpc("update_property", {
             p_property_id: property.id,
             p_operation: form.operation,
-            p_city: form.city,
+            p_city: city,
             p_property_type: form.property_type,
             p_employee_name: form.employee_name.trim(),
             p_mobile: mobileIsHidden ? null : mobile,
@@ -121,7 +140,7 @@ export function PropertyForm({ property }: { property?: Property }) {
           })
         : supabase.from("properties").insert({
             operation: form.operation,
-            city: form.city,
+            city,
             property_type: form.property_type,
             employee_name: form.employee_name.trim(),
             mobile,
@@ -147,7 +166,7 @@ export function PropertyForm({ property }: { property?: Property }) {
       if (form.status === "sold" || form.status === "rented") {
         router.push("/archive");
       } else {
-        router.push(`/properties?operation=${form.operation}&city=${encodeURIComponent(form.city)}`);
+        router.push(`/properties?operation=${form.operation}&city=${encodeURIComponent(city)}`);
       }
     } catch (error) {
       showToast(error instanceof Error ? error.message : "حدث خطأ أثناء حفظ الوحدة", "error");
@@ -179,12 +198,25 @@ export function PropertyForm({ property }: { property?: Property }) {
 
         <label>
           <span>المدينة</span>
-          <select value={form.city} onChange={(e) => updateField("city", e.target.value)}>
+          <select value={citySelectValue} onChange={(e) => updateCitySelection(e.target.value)}>
             {cities.map((city) => (
               <option key={city} value={city}>{city}</option>
             ))}
+            <option value={OTHER_CITY_VALUE}>أخرى</option>
           </select>
         </label>
+
+        {citySelectValue === OTHER_CITY_VALUE ? (
+          <label>
+            <span>اسم المدينة</span>
+            <input
+              required
+              value={form.city}
+              onChange={(e) => updateField("city", e.target.value)}
+              placeholder="اكتب اسم المدينة"
+            />
+          </label>
+        ) : null}
 
         <label>
           <span>نوع الوحدة</span>

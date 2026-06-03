@@ -32,6 +32,10 @@ export function PropertiesView({
   const [type, setType] = useState("");
   const [operation, setOperation] = useState(searchParams.get("operation") ?? "");
   const canViewMobile = hasPermission(profile, "can_view_mobile");
+  const cityOptions = useMemo(
+    () => Array.from(new Set<string>([...cities, ...properties.map((property) => property.city).filter(Boolean)])),
+    [properties]
+  );
 
   async function loadProperties() {
     setLoading(true);
@@ -59,7 +63,7 @@ export function PropertiesView({
     const employeeTerm = employee.trim().toLowerCase();
 
     return properties.filter((property) => {
-      const archived = property.status === "sold" || property.status === "rented";
+      const archived = Boolean(property.archived_at) || property.status === "sold" || property.status === "rented";
       if (archivedOnly && !archived) return false;
       if (!archivedOnly && archived) return false;
 
@@ -91,6 +95,36 @@ export function PropertiesView({
     setProperties((current) => current.filter((item) => item.id !== property.id));
   }
 
+  async function archiveProperty(property: Property) {
+    const confirmed = window.confirm(`هل تريد أرشفة وحدة ${property.city}؟`);
+    if (!confirmed) return;
+
+    const supabase = getSupabase();
+    const { error } = await supabase.rpc("archive_property", { p_property_id: property.id });
+    if (error) {
+      showToast(error.message, "error");
+      return;
+    }
+
+    showToast("تم أرشفة الوحدة بنجاح", "success");
+    setProperties((current) => current.filter((item) => item.id !== property.id));
+  }
+
+  async function unarchiveProperty(property: Property) {
+    const confirmed = window.confirm(`هل تريد استعادة وحدة ${property.city} من الأرشيف؟`);
+    if (!confirmed) return;
+
+    const supabase = getSupabase();
+    const { error } = await supabase.rpc("unarchive_property", { p_property_id: property.id });
+    if (error) {
+      showToast(error.message, "error");
+      return;
+    }
+
+    showToast("تم استعادة الوحدة بنجاح", "success");
+    setProperties((current) => current.filter((item) => item.id !== property.id));
+  }
+
   return (
     <>
       <section className="filters-panel">
@@ -119,7 +153,7 @@ export function PropertiesView({
             <span>المدينة</span>
             <select value={city} onChange={(event) => setCity(event.target.value)}>
               <option value="">كل المدن</option>
-              {cities.map((item) => (
+              {cityOptions.map((item) => (
                 <option key={item} value={item}>
                   {item}
                 </option>
@@ -172,7 +206,14 @@ export function PropertiesView({
       ) : filteredProperties.length ? (
         <div className="properties-grid">
           {filteredProperties.map((property) => (
-            <PropertyCard key={property.id} property={property} profile={profile} onDelete={deleteProperty} />
+            <PropertyCard
+              key={property.id}
+              property={property}
+              profile={profile}
+              onDelete={deleteProperty}
+              onArchive={archivedOnly ? undefined : archiveProperty}
+              onUnarchive={archivedOnly ? unarchiveProperty : undefined}
+            />
           ))}
         </div>
       ) : (

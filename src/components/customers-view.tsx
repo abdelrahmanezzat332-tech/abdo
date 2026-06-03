@@ -141,7 +141,7 @@ export function CustomersView({ archivedOnly = false }: { archivedOnly?: boolean
           <span /><span /><span />
         </div>
       ) : filteredCustomers.length ? (
-        <div className="properties-grid">
+        <div className="customers-grid">
           {filteredCustomers.map((customer) => (
             <CustomerCard
               key={customer.id}
