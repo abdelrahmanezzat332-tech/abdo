@@ -2,7 +2,7 @@
 
 import { Filter, Plus, Search } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { CustomerCard } from "@/components/customer-card";
 import { EmptyState } from "@/components/empty-state";
@@ -13,7 +13,7 @@ import { hasPermission } from "@/lib/permissions";
 import { getSupabase } from "@/lib/supabase";
 import type { Customer } from "@/lib/types";
 
-export function CustomersView() {
+export function CustomersView({ archivedOnly = false }: { archivedOnly?: boolean }) {
   const { profile } = useAuth();
   const { showToast } = useToast();
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -25,7 +25,8 @@ export function CustomersView() {
   async function loadCustomers() {
     setLoading(true);
     const supabase = getSupabase();
-    const { data, error } = await supabase.rpc("get_customers");
+    const rpc = archivedOnly ? "get_archived_customers" : "get_customers";
+    const { data, error } = await supabase.rpc(rpc);
     if (error) {
       showToast(error.message, "error");
       setLoading(false);
@@ -36,19 +37,16 @@ export function CustomersView() {
   }
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void loadCustomers();
-    }, 0);
+    const timer = window.setTimeout(() => { void loadCustomers(); }, 0);
     return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [archivedOnly]);
 
   const filteredCustomers = useMemo(() => {
     const phoneTerm = search.trim();
-
-    return customers.filter((customer) => {
-      const matchesPhone = phoneTerm && canViewMobile ? customer.mobile.includes(phoneTerm) : true;
-      const matchesCity = city ? customer.city === city : true;
+    return customers.filter((c) => {
+      const matchesPhone = phoneTerm && canViewMobile ? c.mobile.includes(phoneTerm) : true;
+      const matchesCity = city ? c.city === city : true;
       return matchesPhone && matchesCity;
     });
   }, [canViewMobile, city, customers, search]);
@@ -63,13 +61,34 @@ export function CustomersView() {
 
     const supabase = getSupabase();
     const { error } = await supabase.rpc("delete_customer", { p_customer_id: customer.id });
-    if (error) {
-      showToast(error.message, "error");
-      return;
-    }
+    if (error) { showToast(error.message, "error"); return; }
 
     showToast("تم حذف العميل بنجاح", "success");
-    setCustomers((current) => current.filter((item) => item.id !== customer.id));
+    setCustomers((cur) => cur.filter((c) => c.id !== customer.id));
+  }
+
+  async function archiveCustomer(customer: Customer) {
+    const confirmed = window.confirm(`هل تريد أرشفة العميل ${customer.customer_code}؟`);
+    if (!confirmed) return;
+
+    const supabase = getSupabase();
+    const { error } = await supabase.rpc("archive_customer", { p_customer_id: customer.id });
+    if (error) { showToast(error.message, "error"); return; }
+
+    showToast("تم أرشفة العميل بنجاح", "success");
+    setCustomers((cur) => cur.filter((c) => c.id !== customer.id));
+  }
+
+  async function unarchiveCustomer(customer: Customer) {
+    const confirmed = window.confirm(`هل تريد استعادة العميل ${customer.customer_code} من الأرشيف؟`);
+    if (!confirmed) return;
+
+    const supabase = getSupabase();
+    const { error } = await supabase.rpc("unarchive_customer", { p_customer_id: customer.id });
+    if (error) { showToast(error.message, "error"); return; }
+
+    showToast("تم استعادة العميل بنجاح", "success");
+    setCustomers((cur) => cur.filter((c) => c.id !== customer.id));
   }
 
   return (
@@ -86,19 +105,21 @@ export function CustomersView() {
               <span>بحث برقم موبايل العميل</span>
               <div className="input-with-icon">
                 <Search size={17} />
-                <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="010..." />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="010..."
+                />
               </div>
             </label>
           ) : null}
 
           <label>
             <span>المدينة</span>
-            <select value={city} onChange={(event) => setCity(event.target.value)}>
+            <select value={city} onChange={(e) => setCity(e.target.value)}>
               <option value="">كل المدن</option>
-              {cities.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
+              {cities.map((c) => (
+                <option key={c} value={c}>{c}</option>
               ))}
             </select>
           </label>
@@ -106,8 +127,8 @@ export function CustomersView() {
       </section>
 
       <div className="list-toolbar">
-        <span>{filteredCustomers.length} عميل</span>
-        {hasPermission(profile, "can_add_customer") ? (
+        <span>{filteredCustomers.length} {archivedOnly ? "عميل مؤرشف" : "عميل"}</span>
+        {!archivedOnly && hasPermission(profile, "can_add_customer") ? (
           <Link className="primary-button compact" href="/customers/new">
             <Plus size={18} />
             إضافة عميل
@@ -117,18 +138,26 @@ export function CustomersView() {
 
       {loading ? (
         <div className="skeleton-grid">
-          <span />
-          <span />
-          <span />
+          <span /><span /><span />
         </div>
       ) : filteredCustomers.length ? (
         <div className="properties-grid">
           {filteredCustomers.map((customer) => (
-            <CustomerCard key={customer.id} customer={customer} profile={profile} onDelete={deleteCustomer} />
+            <CustomerCard
+              key={customer.id}
+              customer={customer}
+              profile={profile}
+              onDelete={deleteCustomer}
+              onArchive={archivedOnly ? undefined : archiveCustomer}
+              onUnarchive={archivedOnly ? unarchiveCustomer : undefined}
+            />
           ))}
         </div>
       ) : (
-        <EmptyState title="لا يوجد عملاء مطابقون" description="جرّب تغيير البحث أو الفلاتر الحالية." />
+        <EmptyState
+          title={archivedOnly ? "لا يوجد عملاء مؤرشفون" : "لا يوجد عملاء مطابقون"}
+          description="جرّب تغيير البحث أو الفلاتر الحالية."
+        />
       )}
     </>
   );

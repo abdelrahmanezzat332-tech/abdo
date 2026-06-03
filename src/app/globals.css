@@ -12,6 +12,9 @@
   --danger: #d84b4b;
   --success: #1d9b6c;
   --shadow: 0 18px 55px rgba(7, 27, 52, 0.12);
+  --card-padding: 1.1rem;
+  --card-gap: 0.9rem;
+  --card-radius: 10px;
 }
 
 * {
@@ -81,6 +84,7 @@ label span {
   font-size: 0.9rem;
 }
 
+/* ── Auth ────────────────────────────────────────── */
 .auth-page {
   display: grid;
   grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.72fr);
@@ -229,6 +233,7 @@ label span {
   background: var(--navy);
 }
 
+/* ── Password & icon fields ──────────────────────── */
 .password-field,
 .input-with-icon {
   position: relative;
@@ -253,6 +258,7 @@ label span {
   background: transparent;
 }
 
+/* ── Buttons ─────────────────────────────────────── */
 .primary-button,
 .soft-button,
 .icon-button {
@@ -311,6 +317,7 @@ label span {
   color: var(--danger) !important;
 }
 
+/* ── App Shell ───────────────────────────────────── */
 .app-shell {
   display: grid;
   grid-template-columns: 292px 1fr;
@@ -411,6 +418,7 @@ label span {
   display: none;
 }
 
+/* ── Page Heading ─────────────────────────────────── */
 .page-heading {
   display: flex;
   align-items: flex-end;
@@ -444,6 +452,7 @@ label span {
   line-height: 1.8;
 }
 
+/* ── Choice + City ───────────────────────────────── */
 .choice-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -459,7 +468,7 @@ label span {
 .stat-card,
 .empty-state {
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--card-radius);
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 12px 35px rgba(7, 27, 52, 0.08);
 }
@@ -535,6 +544,7 @@ label span {
   color: var(--gold);
 }
 
+/* ── Filters & Forms ─────────────────────────────── */
 .filters-panel,
 .panel {
   padding: 1.2rem;
@@ -549,21 +559,23 @@ label span {
   color: var(--navy);
 }
 
-.filters-grid,
-.form-grid {
+.filters-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 1rem;
 }
 
 .form-grid {
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
 }
 
 .full-span {
   grid-column: 1 / -1;
 }
 
+/* ── Shared flex rows ────────────────────────────── */
 .list-toolbar,
 .section-title,
 .employee-head,
@@ -576,23 +588,34 @@ label span {
   gap: 0.8rem;
 }
 
+.card-badges {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 0.4rem;
+}
+
 .list-toolbar {
   margin: 1rem 0;
   color: var(--muted);
   font-weight: 900;
 }
 
+/* ── Properties / Customers grid ─────────────────── */
 .properties-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* align-items: start keeps cards their natural height instead of stretching */
+  align-items: start;
   gap: 1rem;
 }
 
+/* ── Card base ───────────────────────────────────── */
 .property-card,
 .employee-card {
-  display: grid;
-  gap: 1rem;
-  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--card-gap);
+  padding: var(--card-padding);
   transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
@@ -601,14 +624,22 @@ label span {
   box-shadow: var(--shadow);
 }
 
+/* ── Card topline ────────────────────────────────── */
+.card-topline {
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+/* ── Badges & pills ──────────────────────────────── */
 .badge,
 .muted-pill,
 .linked-pill {
   display: inline-flex;
   border-radius: 999px;
-  padding: 0.35rem 0.75rem;
-  font-size: 0.85rem;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.82rem;
   font-weight: 900;
+  white-space: nowrap;
 }
 
 .badge-gold {
@@ -629,35 +660,56 @@ label span {
 .linked-pill {
   color: #6d4b00;
   background: rgba(199, 155, 54, 0.14);
-  white-space: nowrap;
 }
 
-.card-location,
+/* ── Card location ───────────────────────────────── */
+.card-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--navy);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+/* ── Description ─────────────────────────────────── */
+/*  No min-height — let content drive the height.
+    flex-grow pushes meta + actions to the bottom.   */
+.property-description {
+  flex-grow: 1;
+  margin: 0;
+  color: #334155;
+  line-height: 1.75;
+  word-break: break-word;
+}
+
+/* ── Meta row ────────────────────────────────────── */
+.property-meta {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .property-meta span {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
 }
 
-.card-location {
-  color: var(--navy);
-  font-size: 1.25rem;
+.property-price {
+  color: var(--navy) !important;
+  font-weight: 800;
 }
 
-.property-description {
-  min-height: 78px;
-  margin: 0;
-  color: #334155;
-  line-height: 1.75;
+/* ── Card actions ────────────────────────────────── */
+.card-actions {
+  margin-top: auto;
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--border);
 }
 
-.property-meta {
-  display: grid;
-  gap: 0.45rem;
-  color: var(--muted);
-  font-size: 0.92rem;
-}
-
+/* ── Duplicate / permission notes ───────────────── */
 .duplicate-box {
   display: grid;
   gap: 0.35rem;
@@ -685,6 +737,7 @@ label span {
   font-weight: 700;
 }
 
+/* ── Stat cards ──────────────────────────────────── */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -701,6 +754,7 @@ label span {
 .stat-card span {
   color: var(--muted);
   font-weight: 800;
+  font-size: 0.9rem;
 }
 
 .stat-card strong {
@@ -712,8 +766,10 @@ label span {
 
 .stat-card svg {
   color: var(--gold);
+  flex-shrink: 0;
 }
 
+/* ── Admin ───────────────────────────────────────── */
 .admin-shortcuts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -746,6 +802,7 @@ label span {
   align-items: start;
 }
 
+/* ── Employee cards ──────────────────────────────── */
 .employees-list {
   display: grid;
   gap: 1rem;
@@ -799,6 +856,7 @@ label span {
   accent-color: var(--gold);
 }
 
+/* ── Empty / Loading ─────────────────────────────── */
 .empty-state {
   display: grid;
   place-items: center;
@@ -834,6 +892,7 @@ label span {
   animation: spin 850ms linear infinite;
 }
 
+/* ── Skeleton ────────────────────────────────────── */
 .skeleton-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -848,6 +907,7 @@ label span {
   animation: shimmer 1.3s infinite;
 }
 
+/* ── Toast ───────────────────────────────────────── */
 .toast-stack {
   position: fixed;
   top: 1rem;
@@ -871,41 +931,41 @@ label span {
   animation: toast-in 220ms ease both;
 }
 
-.toast-success svg {
-  color: var(--success);
+.toast-success svg { color: var(--success); }
+.toast-error   svg { color: var(--danger); }
+.toast-info    svg { color: var(--navy); }
+
+/* ── Status pills ────────────────────────────────── */
+.status-available {
+  color: #13795b;
+  background: rgba(29, 155, 108, 0.12);
 }
 
-.toast-error svg {
-  color: var(--danger);
+.status-sold {
+  color: #8a1f1f;
+  background: rgba(216, 75, 75, 0.12);
 }
 
-.toast-info svg {
-  color: var(--navy);
+.status-rented {
+  color: #6d4b00;
+  background: rgba(199, 155, 54, 0.16);
 }
 
+/* ── Animations ──────────────────────────────────── */
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
 @keyframes shimmer {
-  to {
-    background-position: -220% 0;
-  }
+  to { background-position: -220% 0; }
 }
 
 @keyframes toast-in {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Breakpoint: ≤ 1180px ────────────────────────── */
 @media (max-width: 1180px) {
   .properties-grid,
   .stats-grid {
@@ -925,6 +985,7 @@ label span {
   }
 }
 
+/* ── Breakpoint: ≤ 920px (mobile sidebar) ───────── */
 @media (max-width: 920px) {
   .auth-page {
     grid-template-columns: 1fr;
@@ -996,6 +1057,7 @@ label span {
   }
 }
 
+/* ── Breakpoint: ≤ 700px ─────────────────────────── */
 @media (max-width: 700px) {
   .auth-page {
     padding: 0;
@@ -1026,26 +1088,12 @@ label span {
   }
 
   .card-actions {
-    align-items: stretch;
     flex-direction: column;
+    align-items: stretch;
   }
 
   .soft-button,
   .primary-button.compact {
     width: 100%;
   }
-}
-.status-available {
-  color: #13795b;
-  background: rgba(29, 155, 108, 0.12);
-}
-
-.status-sold {
-  color: #8a1f1f;
-  background: rgba(216, 75, 75, 0.12);
-}
-
-.status-rented {
-  color: #6d4b00;
-  background: rgba(199, 155, 54, 0.16);
 }

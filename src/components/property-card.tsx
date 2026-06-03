@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, Edit3, MapPin, Phone, Trash2, UserRound } from "lucide-react";
+import { Banknote, CalendarDays, Edit3, MapPin, Phone, Trash2, UserRound } from "lucide-react";
 import Link from "next/link";
 
 import { formatDate, operationLabel } from "@/lib/format";
@@ -34,60 +34,54 @@ export function PropertyCard({
 
   return (
     <article className="property-card">
+      {/* ── Badges ── */}
       <div className="card-topline">
         <div className="card-badges">
           <span className={`badge ${property.operation === "sell" ? "badge-gold" : "badge-blue"}`}>
             {operationLabel(property.operation)}
           </span>
-
           <span className="muted-pill">{property.property_type}</span>
-
           <span className="muted-pill">كود: {property.property_code ?? "تلقائي"}</span>
-
           <span className={`muted-pill ${statusClass(property.status)}`}>
             {statusLabel(property.status)}
           </span>
         </div>
-
-        {property.related_property_id ? <span className="linked-pill">نفس رقم وحدة أخرى</span> : null}
+        {property.related_property_id ? (
+          <span className="linked-pill">نفس رقم وحدة أخرى</span>
+        ) : null}
       </div>
 
+      {/* ── Location ── */}
       <div className="card-location">
-        <MapPin size={18} />
+        <MapPin size={16} />
         <strong>{property.city}</strong>
       </div>
 
+      {/* ── Description — flex-grow pushes meta to bottom ── */}
       <p className="property-description">{property.description}</p>
 
+      {/* ── Meta ── */}
       <div className="property-meta">
-        <span>
-          <UserRound size={16} />
-          {property.employee_name}
-        </span>
-
-        <span>
-          <Phone size={16} />
-          {canViewMobile ? property.mobile : "رقم مخفي"}
-        </span>
-
-        <span>
-          <CalendarDays size={16} />
-          {formatDate(property.created_at)}
-        </span>
+        <span><UserRound size={15} />{property.employee_name}</span>
+        <span><Phone size={15} />{canViewMobile ? property.mobile : "رقم مخفي"}</span>
+        {property.price ? (
+          <span className="property-price"><Banknote size={15} />{property.price}</span>
+        ) : null}
+        <span><CalendarDays size={15} />{formatDate(property.created_at)}</span>
       </div>
 
+      {/* ── Actions ── */}
       {(canEdit || canDelete) && (
         <div className="card-actions">
           {canEdit ? (
             <Link className="soft-button" href={`/properties/${property.id}/edit`}>
-              <Edit3 size={16} />
+              <Edit3 size={15} />
               تعديل
             </Link>
           ) : null}
-
           {canDelete ? (
             <button className="soft-button danger" type="button" onClick={() => onDelete(property)}>
-              <Trash2 size={16} />
+              <Trash2 size={15} />
               حذف
             </button>
           ) : null}

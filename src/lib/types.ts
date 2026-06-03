@@ -45,6 +45,7 @@ export type Property = {
   employee_name: string;
   mobile: string;
   description: string;
+  price: string;
   status: PropertyStatus;
   archived_at: string | null;
   related_property_id: string | null;
@@ -63,6 +64,7 @@ export type Customer = {
   city: City;
   budget: string;
   notes: string;
+  archived_at: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;

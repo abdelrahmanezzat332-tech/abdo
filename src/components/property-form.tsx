@@ -19,6 +19,7 @@ type FormState = {
   employee_name: string;
   mobile: string;
   description: string;
+  price: string;
   status: PropertyStatus;
 };
 
@@ -29,6 +30,7 @@ const initialForm: FormState = {
   employee_name: "",
   mobile: "",
   description: "",
+  price: "",
   status: "available"
 };
 
@@ -49,12 +51,10 @@ export function PropertyForm({ property }: { property?: Property }) {
           employee_name: property.employee_name,
           mobile: initialCanViewMobile ? property.mobile : "",
           description: property.description,
+          price: property.price ?? "",
           status: property.status ?? "available"
         }
-      : {
-          ...initialForm,
-          employee_name: profile?.full_name ?? ""
-        }
+      : { ...initialForm, employee_name: profile?.full_name ?? "" }
   );
 
   const canSubmit = useMemo(() => {
@@ -72,14 +72,12 @@ export function PropertyForm({ property }: { property?: Property }) {
 
   async function findRelatedMobile(mobile: string) {
     const supabase = getSupabase();
-
     const { data, error } = await supabase
       .rpc("find_property_by_mobile", {
         lookup_mobile: mobile,
         excluded_property_id: property?.id ?? null
       })
       .maybeSingle();
-
     if (error) throw error;
     return data as Property | null;
   }
@@ -93,7 +91,6 @@ export function PropertyForm({ property }: { property?: Property }) {
     }
 
     const mobile = normalizePhone(mobileIsHidden ? property?.mobile ?? "" : form.mobile);
-
     if (!mobile) {
       showToast("برجاء إدخال رقم موبايل صحيح", "error");
       return;
@@ -108,18 +105,6 @@ export function PropertyForm({ property }: { property?: Property }) {
 
       const supabase = getSupabase();
 
-      const payload = {
-        operation: form.operation,
-        city: form.city,
-        property_type: form.property_type,
-        employee_name: form.employee_name.trim(),
-        ...(mobileIsHidden ? {} : { mobile }),
-        description: form.description.trim(),
-        status: form.status,
-        related_property_id: existing?.id ?? property?.related_property_id ?? null,
-        created_by: property?.created_by ?? user.id
-      };
-
       const request = property
         ? supabase.rpc("update_property", {
             p_property_id: property.id,
@@ -130,10 +115,22 @@ export function PropertyForm({ property }: { property?: Property }) {
             p_mobile: mobileIsHidden ? null : mobile,
             p_keep_existing_mobile: mobileIsHidden,
             p_description: form.description.trim(),
+            p_price: form.price.trim(),
             p_status: form.status,
             p_related_property_id: existing?.id ?? property.related_property_id ?? null
           })
-        : supabase.from("properties").insert(payload);
+        : supabase.from("properties").insert({
+            operation: form.operation,
+            city: form.city,
+            property_type: form.property_type,
+            employee_name: form.employee_name.trim(),
+            mobile,
+            description: form.description.trim(),
+            price: form.price.trim(),
+            status: form.status,
+            related_property_id: existing?.id ?? null,
+            created_by: user.id
+          });
 
       const { error } = await request;
       if (error) throw error;
@@ -164,44 +161,36 @@ export function PropertyForm({ property }: { property?: Property }) {
       <div className="form-grid">
         <label>
           <span>نوع العملية</span>
-          <select value={form.operation} onChange={(event) => updateField("operation", event.target.value)}>
-            {operations.map((operation) => (
-              <option key={operation.value} value={operation.value}>
-                {operation.label}
-              </option>
+          <select value={form.operation} onChange={(e) => updateField("operation", e.target.value)}>
+            {operations.map((op) => (
+              <option key={op.value} value={op.value}>{op.label}</option>
             ))}
           </select>
         </label>
 
         <label>
           <span>حالة الوحدة</span>
-          <select value={form.status} onChange={(event) => updateField("status", event.target.value)}>
-            {propertyStatuses.map((status) => (
-              <option key={status.value} value={status.value}>
-                {status.label}
-              </option>
+          <select value={form.status} onChange={(e) => updateField("status", e.target.value)}>
+            {propertyStatuses.map((s) => (
+              <option key={s.value} value={s.value}>{s.label}</option>
             ))}
           </select>
         </label>
 
         <label>
           <span>المدينة</span>
-          <select value={form.city} onChange={(event) => updateField("city", event.target.value)}>
+          <select value={form.city} onChange={(e) => updateField("city", e.target.value)}>
             {cities.map((city) => (
-              <option key={city} value={city}>
-                {city}
-              </option>
+              <option key={city} value={city}>{city}</option>
             ))}
           </select>
         </label>
 
         <label>
           <span>نوع الوحدة</span>
-          <select value={form.property_type} onChange={(event) => updateField("property_type", event.target.value)}>
+          <select value={form.property_type} onChange={(e) => updateField("property_type", e.target.value)}>
             {propertyTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
+              <option key={type} value={type}>{type}</option>
             ))}
           </select>
         </label>
@@ -211,7 +200,7 @@ export function PropertyForm({ property }: { property?: Property }) {
           <input
             required
             value={form.employee_name}
-            onChange={(event) => updateField("employee_name", event.target.value)}
+            onChange={(e) => updateField("employee_name", e.target.value)}
             placeholder="مثال: أحمد محمود"
           />
         </label>
@@ -223,10 +212,21 @@ export function PropertyForm({ property }: { property?: Property }) {
             disabled={mobileIsHidden}
             inputMode="tel"
             value={mobileIsHidden ? "رقم مخفي" : form.mobile}
-            onChange={(event) => updateField("mobile", event.target.value)}
+            onChange={(e) => updateField("mobile", e.target.value)}
             placeholder="01000000000"
           />
-          {mobileIsHidden ? <small className="field-note">تحتاج صلاحية رؤية رقم الموبايل لعرضه أو تعديله.</small> : null}
+          {mobileIsHidden ? (
+            <small className="field-note">تحتاج صلاحية رؤية رقم الموبايل لعرضه أو تعديله.</small>
+          ) : null}
+        </label>
+
+        <label>
+          <span>السعر</span>
+          <input
+            value={form.price}
+            onChange={(e) => updateField("price", e.target.value)}
+            placeholder="مثال: 2,500,000 جنيه"
+          />
         </label>
 
         <label className="full-span">
@@ -234,8 +234,8 @@ export function PropertyForm({ property }: { property?: Property }) {
           <textarea
             required
             value={form.description}
-            onChange={(event) => updateField("description", event.target.value)}
-            placeholder="اكتب تفاصيل الوحدة، المساحة، الدور، التشطيب، السعر أو أي ملاحظات مهمة..."
+            onChange={(e) => updateField("description", e.target.value)}
+            placeholder="اكتب تفاصيل الوحدة، المساحة، الدور، التشطيب، أو أي ملاحظات مهمة..."
             rows={6}
           />
         </label>
@@ -246,7 +246,8 @@ export function PropertyForm({ property }: { property?: Property }) {
           <strong>هذا الرقم مرتبط بوحدة أخرى</strong>
           <p>سيتم حفظ الوحدة الحالية كوحدة منفصلة، مع ربطها داخليًا بالوحدة القديمة.</p>
           <span>
-            الوحدة القديمة: {operationLabel(relatedProperty.operation)} - {relatedProperty.city} - {relatedProperty.property_type}
+            الوحدة القديمة: {operationLabel(relatedProperty.operation)} - {relatedProperty.city} -{" "}
+            {relatedProperty.property_type}
           </span>
           <span>
             الموظف: {relatedProperty.employee_name}
