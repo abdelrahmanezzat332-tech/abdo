@@ -1,3 +1,9 @@
+alter table public.properties add column if not exists archived_at timestamptz;
+alter table public.customers add column if not exists archived_at timestamptz;
+alter table public.customers add column if not exists created_by uuid references auth.users(id) on delete set null;
+alter table public.customers add column if not exists created_at timestamptz not null default now();
+alter table public.customers add column if not exists updated_at timestamptz not null default now();
+
 create or replace function public.sync_property_archive_state()
 returns trigger language plpgsql as $$
 begin
