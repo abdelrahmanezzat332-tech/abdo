@@ -59,7 +59,7 @@ export function PropertiesView({
   }, []);
 
   const filteredProperties = useMemo(() => {
-    const phoneTerm = search.trim();
+    const searchTerm = search.trim().toLowerCase();
     const employeeTerm = employee.trim().toLowerCase();
 
     return properties.filter((property) => {
@@ -67,12 +67,16 @@ export function PropertiesView({
       if (archivedOnly && !archived) return false;
       if (!archivedOnly && archived) return false;
 
-      const matchesPhone = phoneTerm && canViewMobile ? property.mobile.includes(phoneTerm) : true;
+      const matchesPropertyCode = searchTerm
+        ? (property.property_code ?? "").toLowerCase().includes(searchTerm)
+        : false;
+      const matchesMobile = searchTerm ? canViewMobile && property.mobile.includes(searchTerm) : false;
+      const matchesSearch = searchTerm ? matchesPropertyCode || matchesMobile : true;
       const matchesEmployee = employeeTerm ? property.employee_name.toLowerCase().includes(employeeTerm) : true;
       const matchesCity = city ? property.city === city : true;
       const matchesType = type ? property.property_type === type : true;
       const matchesOperation = operation ? property.operation === operation : true;
-      return matchesPhone && matchesEmployee && matchesCity && matchesType && matchesOperation;
+      return matchesSearch && matchesEmployee && matchesCity && matchesType && matchesOperation;
     });
   }, [archivedOnly, canViewMobile, city, employee, operation, properties, search, type]);
 
@@ -134,15 +138,17 @@ export function PropertiesView({
         </div>
 
         <div className="filters-grid">
-          {canViewMobile ? (
-            <label>
-              <span>بحث برقم الموبايل</span>
-              <div className="input-with-icon">
-                <Search size={17} />
-                <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="010..." />
-              </div>
-            </label>
-          ) : null}
+          <label>
+            <span>{canViewMobile ? "بحث بكود الوحدة أو رقم الموبايل" : "بحث بكود الوحدة"}</span>
+            <div className="input-with-icon">
+              <Search size={17} />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder={canViewMobile ? "KY-S-00001 أو 010..." : "KY-S-00001"}
+              />
+            </div>
+          </label>
 
           <label>
             <span>بحث باسم الموظف</span>

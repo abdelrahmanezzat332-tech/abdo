@@ -8,27 +8,41 @@ import { LoadingScreen } from "@/components/loading-screen";
 import { PageHeading } from "@/components/page-heading";
 import { PropertyForm } from "@/components/property-form";
 import { RequireAuth } from "@/components/require-auth";
+import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/context/toast-context";
 import { getSupabase } from "@/lib/supabase";
 import type { Property } from "@/lib/types";
 
 export default function EditPropertyPage() {
   const params = useParams<{ id: string }>();
+  const { loading: authLoading, user } = useAuth();
   const { showToast } = useToast();
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) return;
+
+    if (!user) return;
+
+    let active = true;
+
     async function loadProperty() {
+      setLoading(true);
       const supabase = getSupabase();
       const { data, error } = await supabase.rpc("get_property_by_id", { p_property_id: params.id }).single();
+      if (!active) return;
       if (error) showToast(error.message, "error");
       setProperty((data as Property) ?? null);
       setLoading(false);
     }
 
-    loadProperty();
-  }, [params.id, showToast]);
+    void loadProperty();
+
+    return () => {
+      active = false;
+    };
+  }, [authLoading, params.id, showToast, user]);
 
   return (
     <RequireAuth>
