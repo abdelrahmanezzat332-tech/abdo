@@ -14,6 +14,7 @@ import type { City, Customer } from "@/lib/types";
 
 type FormState = {
   customer_name: string;
+  representative_name: string;
   mobile: string;
   city: City;
   budget: string;
@@ -22,6 +23,7 @@ type FormState = {
 
 const initialForm: FormState = {
   customer_name: "",
+  representative_name: "",
   mobile: "",
   city: "بدر",
   budget: "",
@@ -39,6 +41,7 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
     customer
       ? {
           customer_name: customer.customer_name ?? "",
+          representative_name: customer.representative_name ?? "",
           mobile: initialCanViewMobile ? customer.mobile : "",
           city: customer.city,
           budget: customer.budget,
@@ -89,6 +92,7 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
       const supabase = getSupabase();
       const payload = {
         customer_name: form.customer_name.trim() || null,
+        representative_name: form.representative_name.trim() || null,
         city: form.city,
         budget: form.budget.trim(),
         notes: form.notes.trim(),
@@ -100,6 +104,7 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
         ? supabase.rpc("update_customer", {
             p_customer_id: customer.id,
             p_customer_name: form.customer_name.trim() || null,
+            p_representative_name: form.representative_name.trim() || null,
             p_mobile: mobileIsHidden ? null : mobile,
             p_keep_existing_mobile: mobileIsHidden,
             p_city: form.city,
@@ -129,6 +134,15 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
             value={form.customer_name}
             onChange={(event) => updateField("customer_name", event.target.value)}
             placeholder="مثال: أحمد محمود"
+          />
+        </label>
+
+        <label>
+          <span>المندوب (اختياري)</span>
+          <input
+            value={form.representative_name}
+            onChange={(event) => updateField("representative_name", event.target.value)}
+            placeholder="مثال: محمد أحمد"
           />
         </label>
 

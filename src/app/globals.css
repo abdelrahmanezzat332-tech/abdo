@@ -412,6 +412,10 @@ label span {
   padding: clamp(1rem, 3vw, 2.4rem);
 }
 
+.page-back-button {
+  margin-bottom: 1rem;
+}
+
 .mobile-menu,
 .sidebar-close,
 .sidebar-backdrop {

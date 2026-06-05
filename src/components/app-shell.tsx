@@ -17,6 +17,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
+import { BackButton } from "@/components/back-button";
 import { useAuth } from "@/context/auth-context";
 
 const navItems = [
@@ -84,7 +85,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {open ? <button className="sidebar-backdrop" aria-label="إغلاق القائمة" onClick={() => setOpen(false)} /> : null}
 
-      <main className="main-content">{children}</main>
+      <main className="main-content">
+        <BackButton />
+        {children}
+      </main>
     </div>
   );
 }

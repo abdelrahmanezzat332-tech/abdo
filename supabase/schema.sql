@@ -84,6 +84,7 @@ create table if not exists public.customers (
   id uuid primary key default gen_random_uuid(),
   customer_code text not null unique default (nextval('public.customer_code_seq')::text),
   customer_name text,
+  representative_name text,
   mobile text not null,
   city text not null check (city in ('بدر', 'الشروق', 'مدينتي', 'العبور')),
   budget text not null,
@@ -110,6 +111,7 @@ alter table public.properties add column if not exists related_property_id uuid 
 
 alter table public.customers add column if not exists customer_code text;
 alter table public.customers add column if not exists customer_name text;
+alter table public.customers add column if not exists representative_name text;
 alter table public.customers add column if not exists mobile text;
 alter table public.customers add column if not exists city text;
 alter table public.customers add column if not exists budget text;
@@ -606,14 +608,14 @@ $$;
 drop function if exists public.get_customers();
 create or replace function public.get_customers()
 returns table (
-  id uuid, customer_code text, customer_name text, mobile text,
+  id uuid, customer_code text, customer_name text, representative_name text, mobile text,
   city text, budget text, notes text, archived_at timestamptz,
   created_by uuid, created_at timestamptz, updated_at timestamptz
 )
 language sql stable security definer set search_path = public
 as $$
   select
-    c.id, c.customer_code, c.customer_name,
+    c.id, c.customer_code, c.customer_name, c.representative_name,
     case when public.can_view_customer_mobile() then c.mobile else '' end as mobile,
     c.city, c.budget, c.notes,
     c.archived_at,
@@ -628,14 +630,14 @@ $$;
 drop function if exists public.get_archived_customers();
 create or replace function public.get_archived_customers()
 returns table (
-  id uuid, customer_code text, customer_name text, mobile text,
+  id uuid, customer_code text, customer_name text, representative_name text, mobile text,
   city text, budget text, notes text, archived_at timestamptz,
   created_by uuid, created_at timestamptz, updated_at timestamptz
 )
 language sql stable security definer set search_path = public
 as $$
   select
-    c.id, c.customer_code, c.customer_name,
+    c.id, c.customer_code, c.customer_name, c.representative_name,
     case when public.can_view_customer_mobile() then c.mobile else '' end as mobile,
     c.city, c.budget, c.notes,
     c.archived_at,
@@ -650,14 +652,14 @@ $$;
 drop function if exists public.get_customer_by_id(uuid);
 create or replace function public.get_customer_by_id(p_customer_id uuid)
 returns table (
-  id uuid, customer_code text, customer_name text, mobile text,
+  id uuid, customer_code text, customer_name text, representative_name text, mobile text,
   city text, budget text, notes text, archived_at timestamptz,
   created_by uuid, created_at timestamptz, updated_at timestamptz
 )
 language sql stable security definer set search_path = public
 as $$
   select
-    c.id, c.customer_code, c.customer_name,
+    c.id, c.customer_code, c.customer_name, c.representative_name,
     case when public.can_view_customer_mobile() then c.mobile else '' end as mobile,
     c.city, c.budget, c.notes,
     c.archived_at,
@@ -670,9 +672,11 @@ $$;
 
 -- ── update_customer ──────────────────────────────────────────────────────────
 drop function if exists public.update_customer(uuid, text, text, boolean, text, text, text);
+drop function if exists public.update_customer(uuid, text, text, text, boolean, text, text, text);
 create or replace function public.update_customer(
   p_customer_id          uuid,
   p_customer_name        text,
+  p_representative_name  text,
   p_mobile               text,
   p_keep_existing_mobile boolean,
   p_city                 text,
@@ -695,11 +699,12 @@ begin
 
   update public.customers as target
   set
-    customer_name = nullif(btrim(coalesce(p_customer_name, '')), ''),
-    mobile        = case when p_keep_existing_mobile then target.mobile else p_mobile end,
-    city          = p_city,
-    budget        = btrim(p_budget),
-    notes         = btrim(p_notes)
+    customer_name       = nullif(btrim(coalesce(p_customer_name, '')), ''),
+    representative_name = nullif(btrim(coalesce(p_representative_name, '')), ''),
+    mobile              = case when p_keep_existing_mobile then target.mobile else p_mobile end,
+    city                = p_city,
+    budget              = btrim(p_budget),
+    notes               = btrim(p_notes)
   where target.id = p_customer_id;
 
   if not found then raise exception 'Customer was not found.'; end if;

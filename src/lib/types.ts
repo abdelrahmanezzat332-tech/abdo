@@ -60,6 +60,7 @@ export type Customer = {
   id: string;
   customer_code: string;
   customer_name: string | null;
+  representative_name: string | null;
   mobile: string;
   city: City;
   budget: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import { Archive, Banknote, CalendarDays, Edit3, MapPin, Phone, Trash2, UserRound } from "lucide-react";
+import { Archive, Banknote, CalendarDays, Edit3, MapPin, Phone, Trash2, UserCheck, UserRound } from "lucide-react";
 import Link from "next/link";
 
 import { formatDate } from "@/lib/format";
@@ -24,6 +24,7 @@ export function CustomerCard({
   const canDelete = canManageCustomer(profile, "delete");
   const canViewMobile = hasPermission(profile, "can_view_customer_mobile");
   const customerName = customer.customer_name?.trim() || "عميل بدون اسم";
+  const representativeName = customer.representative_name?.trim();
   const isArchived = Boolean(customer.archived_at);
 
   return (
@@ -49,6 +50,7 @@ export function CustomerCard({
       {/* ── Meta ── */}
       <div className="property-meta">
         <span><UserRound size={15} />{customerName}</span>
+        {representativeName ? <span><UserCheck size={15} />المندوب: {representativeName}</span> : null}
         <span><Phone size={15} />{canViewMobile ? customer.mobile : "رقم مخفي"}</span>
         <span><Banknote size={15} />{customer.budget}</span>
         <span><CalendarDays size={15} />{formatDate(customer.created_at)}</span>
