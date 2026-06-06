@@ -26,7 +26,7 @@ export default async function CitiesPage({
 
         <section className="city-grid">
           {cities.map((city) => (
-            <Link className="city-card" key={city} href={`/properties?operation=${operation}&city=${encodeURIComponent(city)}`}>
+            <Link className="city-card" key={city} href={`/unit-category?operation=${operation}&city=${encodeURIComponent(city)}`}>
               <MapPinned size={28} />
               <span>{city}</span>
             </Link>

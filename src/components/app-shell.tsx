@@ -4,6 +4,7 @@ import {
   Archive,
   Building2,
   ChevronRight,
+  DatabaseBackup,
   Home,
   LayoutDashboard,
   LogOut,
@@ -22,14 +23,15 @@ import { useAuth } from "@/context/auth-context";
 
 const navItems = [
   { href: "/choose-operation",     label: "الرئيسية",       icon: Home },
-  { href: "/properties",           label: "الوحدات",        icon: Building2 },
+  { href: "/properties",           label: "الوحدات الرئيسية", icon: Building2 },
   { href: "/partial-units",        label: "وحدات جزئية",    icon: Building2 },
   { href: "/archive",              label: "أرشيف الوحدات",  icon: Archive },
   { href: "/customers",            label: "العملاء",        icon: UserRound },
   { href: "/customers/archive",    label: "أرشيف العملاء",  icon: Archive },
   { href: "/admin",                label: "لوحة الأدمن",    icon: LayoutDashboard, admin: true },
   { href: "/admin/employees",      label: "الموظفون",       icon: Users,           admin: true },
-  { href: "/admin/permissions",    label: "الصلاحيات",      icon: ShieldCheck,     admin: true }
+  { href: "/admin/permissions",    label: "الصلاحيات",      icon: ShieldCheck,     admin: true },
+  { href: "/admin/backup",         label: "نسخ احتياطي",    icon: DatabaseBackup,  admin: true }
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {

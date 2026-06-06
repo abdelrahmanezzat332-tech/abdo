@@ -1,18 +1,18 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+import { getBackDestination } from "@/lib/back-navigation";
 
 export function BackButton() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   function goBack() {
-    if (window.history.length > 1) {
-      router.back();
-      return;
-    }
-
-    router.push("/choose-operation");
+    const destination = getBackDestination(pathname, searchParams);
+    router.push(destination);
   }
 
   return (
@@ -22,4 +22,3 @@ export function BackButton() {
     </button>
   );
 }
-

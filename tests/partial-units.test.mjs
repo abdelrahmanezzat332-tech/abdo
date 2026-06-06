@@ -42,6 +42,26 @@ test("partial unit routes use the shared property experience in partial mode", (
   assert.match(editPage, /<PropertyForm mode="partial" property=\{property\}/);
 });
 
+test("city selection opens a unit category choice before listing records", () => {
+  const cityPage = readFileSync("src/app/cities/page.tsx", "utf8");
+  const categoryPage = readFileSync("src/app/unit-category/page.tsx", "utf8");
+
+  assert.match(cityPage, /href=\{`\/unit-category\?operation=\$\{operation\}&city=/);
+  assert.match(categoryPage, /وحدات رئيسية/);
+  assert.match(categoryPage, /وحدات جزئية/);
+  assert.match(categoryPage, /href=\{`\/properties\?operation=\$\{operation\}&city=/);
+  assert.match(categoryPage, /href=\{`\/partial-units\?operation=\$\{operation\}&city=/);
+});
+
+test("primary unit labels are explicit across navigation and list page", () => {
+  const shell = readFileSync("src/components/app-shell.tsx", "utf8");
+  const propertiesPage = readFileSync("src/app/properties/page.tsx", "utf8");
+
+  assert.match(shell, /label: "الوحدات الرئيسية"/);
+  assert.match(propertiesPage, /eyebrow="إدارة الوحدات الرئيسية"/);
+  assert.match(propertiesPage, /title="الوحدات الرئيسية"/);
+});
+
 test("database migration adds partial-unit fields without changing old records", () => {
   const source = readFileSync("supabase/add-partial-units.sql", "utf8");
 
