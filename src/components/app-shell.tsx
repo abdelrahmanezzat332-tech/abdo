@@ -23,6 +23,7 @@ import { useAuth } from "@/context/auth-context";
 const navItems = [
   { href: "/choose-operation",     label: "الرئيسية",       icon: Home },
   { href: "/properties",           label: "الوحدات",        icon: Building2 },
+  { href: "/partial-units",        label: "وحدات جزئية",    icon: Building2 },
   { href: "/archive",              label: "أرشيف الوحدات",  icon: Archive },
   { href: "/customers",            label: "العملاء",        icon: UserRound },
   { href: "/customers/archive",    label: "أرشيف العملاء",  icon: Archive },

@@ -6,11 +6,11 @@ import { useMemo, useState, type FormEvent } from "react";
 
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/context/toast-context";
-import { cities, operations, propertyStatuses, propertyTypes } from "@/lib/constants";
+import { cities, operations, partialAvailabilityTypes, propertyStatuses, propertyTypes } from "@/lib/constants";
 import { normalizePhone, operationLabel } from "@/lib/format";
 import { hasPermission } from "@/lib/permissions";
 import { getSupabase } from "@/lib/supabase";
-import type { Operation, Property, PropertyStatus } from "@/lib/types";
+import type { Operation, PartialAvailabilityType, Property, PropertyStatus } from "@/lib/types";
 
 const OTHER_CITY_VALUE = "__other_city__";
 
@@ -23,6 +23,8 @@ type FormState = {
   description: string;
   price: string;
   status: PropertyStatus;
+  availability_type: PartialAvailabilityType;
+  availability_other: string;
 };
 
 const initialForm: FormState = {
@@ -33,10 +35,18 @@ const initialForm: FormState = {
   mobile: "",
   description: "",
   price: "",
-  status: "available"
+  status: "available",
+  availability_type: "bed",
+  availability_other: ""
 };
 
-export function PropertyForm({ property }: { property?: Property }) {
+export function PropertyForm({
+  property,
+  mode = "full"
+}: {
+  property?: Property;
+  mode?: "full" | "partial";
+}) {
   const { profile, user } = useAuth();
   const router = useRouter();
   const { showToast } = useToast();
@@ -54,7 +64,9 @@ export function PropertyForm({ property }: { property?: Property }) {
           mobile: initialCanViewMobile ? property.mobile : "",
           description: property.description,
           price: property.price ?? "",
-          status: property.status ?? "available"
+          status: property.status ?? "available",
+          availability_type: property.availability_type ?? "bed",
+          availability_other: property.availability_other ?? ""
         }
       : { ...initialForm, employee_name: profile?.full_name ?? "" }
   );
@@ -68,6 +80,7 @@ export function PropertyForm({ property }: { property?: Property }) {
   const mobileIsHidden = Boolean(property && !canViewMobile);
   const selectedCityIsCustom = !cities.includes(form.city as (typeof cities)[number]);
   const citySelectValue = selectedCityIsCustom ? OTHER_CITY_VALUE : form.city;
+  const availabilityType = form.availability_type;
 
   function updateField(name: keyof FormState, value: string) {
     setForm((current) => ({ ...current, [name]: value }));
@@ -115,6 +128,11 @@ export function PropertyForm({ property }: { property?: Property }) {
       return;
     }
 
+    if (mode === "partial" && availabilityType === "other" && !form.availability_other.trim()) {
+      showToast("برجاء كتابة نوع المتاح", "error");
+      return;
+    }
+
     setSaving(true);
     setRelatedProperty(null);
 
@@ -124,30 +142,43 @@ export function PropertyForm({ property }: { property?: Property }) {
 
       const supabase = getSupabase();
 
-      const request = property
-        ? supabase.rpc("update_property", {
+      const commonPayload = {
+        p_operation: form.operation,
+        p_city: city,
+        p_property_type: form.property_type,
+        p_employee_name: form.employee_name.trim(),
+        p_description: form.description.trim(),
+        p_price: form.price.trim(),
+        p_status: form.status,
+        p_related_property_id: existing?.id ?? property?.related_property_id ?? null
+      };
+
+      const request = mode === "partial"
+        ? property
+          ? supabase.rpc("update_partial_property", {
+              p_property_id: property.id,
+              ...commonPayload,
+              p_mobile: mobileIsHidden ? null : mobile,
+              p_keep_existing_mobile: mobileIsHidden,
+              p_availability_type: availabilityType,
+              p_availability_other: availabilityType === "other" ? form.availability_other.trim() : ""
+            })
+          : supabase.rpc("create_partial_property", {
+              ...commonPayload,
+              p_mobile: mobile,
+              p_availability_type: availabilityType,
+              p_availability_other: availabilityType === "other" ? form.availability_other.trim() : ""
+            })
+        : property
+          ? supabase.rpc("update_property", {
             p_property_id: property.id,
-            p_operation: form.operation,
-            p_city: city,
-            p_property_type: form.property_type,
-            p_employee_name: form.employee_name.trim(),
+            ...commonPayload,
             p_mobile: mobileIsHidden ? null : mobile,
-            p_keep_existing_mobile: mobileIsHidden,
-            p_description: form.description.trim(),
-            p_price: form.price.trim(),
-            p_status: form.status,
-            p_related_property_id: existing?.id ?? property.related_property_id ?? null
+            p_keep_existing_mobile: mobileIsHidden
           })
-        : supabase.rpc("create_property", {
-            p_operation: form.operation,
-            p_city: city,
-            p_property_type: form.property_type,
-            p_employee_name: form.employee_name.trim(),
+          : supabase.rpc("create_property", {
+            ...commonPayload,
             p_mobile: mobile,
-            p_description: form.description.trim(),
-            p_price: form.price.trim(),
-            p_status: form.status,
-            p_related_property_id: existing?.id ?? null
           });
 
       const { error } = await request;
@@ -165,7 +196,8 @@ export function PropertyForm({ property }: { property?: Property }) {
       if (form.status === "sold" || form.status === "rented") {
         router.push("/archive");
       } else {
-        router.push(`/properties?operation=${form.operation}&city=${encodeURIComponent(city)}`);
+        const destination = mode === "partial" ? "/partial-units" : "/properties";
+        router.push(`${destination}?operation=${form.operation}&city=${encodeURIComponent(city)}`);
       }
     } catch (error) {
       showToast(error instanceof Error ? error.message : "حدث خطأ أثناء حفظ الوحدة", "error");
@@ -225,6 +257,32 @@ export function PropertyForm({ property }: { property?: Property }) {
             ))}
           </select>
         </label>
+
+        {mode === "partial" ? (
+          <label>
+            <span>المتاح</span>
+            <select
+              value={availabilityType}
+              onChange={(e) => updateField("availability_type", e.target.value)}
+            >
+              {partialAvailabilityTypes.map((item) => (
+                <option key={item.value} value={item.value}>{item.label}</option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+
+        {mode === "partial" && availabilityType === "other" ? (
+          <label>
+            <span>نوع المتاح</span>
+            <input
+              required
+              value={form.availability_other}
+              onChange={(e) => updateField("availability_other", e.target.value)}
+              placeholder="اكتب النوع"
+            />
+          </label>
+        ) : null}
 
         <label>
           <span>اسم الموظف المسؤول</span>

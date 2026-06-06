@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { formatDate, operationLabel } from "@/lib/format";
+import { partialAvailabilityTypes } from "@/lib/constants";
 import { canManageProperty, hasPermission } from "@/lib/permissions";
 import type { Property, UserProfile } from "@/lib/types";
 
@@ -39,6 +40,10 @@ export function PropertyCard({
   const canViewMobile = hasPermission(profile, "can_view_mobile");
   const isArchived = Boolean(property.archived_at) || property.status === "sold" || property.status === "rented";
   const descriptionTitleId = `property-description-title-${property.id}`;
+  const availabilityLabel =
+    property.availability_type === "other"
+      ? property.availability_other
+      : partialAvailabilityTypes.find((item) => item.value === property.availability_type)?.label;
 
   return (
     <>
@@ -54,6 +59,9 @@ export function PropertyCard({
             <span className={`muted-pill ${statusClass(property.status)}`}>
               {statusLabel(property.status)}
             </span>
+            {property.is_partial && availabilityLabel ? (
+              <span className="muted-pill">المتاح: {availabilityLabel}</span>
+            ) : null}
             {isArchived ? <span className="muted-pill status-archived">مؤرشف</span> : null}
           </div>
           {property.related_property_id ? (
@@ -91,7 +99,10 @@ export function PropertyCard({
         {(canEdit || canDelete) && (
           <div className="card-actions">
             {canEdit && !isArchived ? (
-              <Link className="soft-button" href={`/properties/${property.id}/edit`}>
+              <Link
+                className="soft-button"
+                href={property.is_partial ? `/partial-units/${property.id}/edit` : `/properties/${property.id}/edit`}
+              >
                 <Edit3 size={15} />
                 تعديل
               </Link>

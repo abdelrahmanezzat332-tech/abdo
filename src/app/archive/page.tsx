@@ -15,7 +15,7 @@ export default function ArchivePage() {
           description="عرض الوحدات التي تم أرشفتها أو بيعها أو تأجيرها مع إمكانية البحث والفلترة حسب الصلاحيات."
         />
         <Suspense fallback={<div className="panel">جاري تحميل الأرشيف...</div>}>
-          <PropertiesView archivedOnly hideAddAction />
+          <PropertiesView archivedOnly hideAddAction includeAllCategories />
         </Suspense>
       </AppShell>
     </RequireAuth>

@@ -2,6 +2,7 @@ import type {
   cities,
   operations,
   permissionLabels,
+  partialAvailabilityTypes,
   propertyStatuses,
   propertyTypes
 } from "@/lib/constants";
@@ -10,6 +11,7 @@ export type Operation = (typeof operations)[number]["value"];
 export type City = (typeof cities)[number];
 export type PropertyType = (typeof propertyTypes)[number];
 export type PropertyStatus = (typeof propertyStatuses)[number]["value"];
+export type PartialAvailabilityType = (typeof partialAvailabilityTypes)[number]["value"];
 export type PermissionKey = keyof typeof permissionLabels;
 
 export type UserRole = "admin" | "employee";
@@ -47,6 +49,9 @@ export type Property = {
   description: string;
   price: string;
   status: PropertyStatus;
+  is_partial: boolean;
+  availability_type: PartialAvailabilityType | null;
+  availability_other: string;
   archived_at: string | null;
   related_property_id: string | null;
   created_by: string | null;

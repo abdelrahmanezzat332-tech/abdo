@@ -35,3 +35,9 @@ abdelrahmanezzat332@gmail.com
 NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 ```
+
+## الوحدات الجزئية
+
+بعد تشغيل `supabase/schema.sql`، شغّل ملف
+`supabase/add-partial-units.sql` مرة واحدة من Supabase SQL Editor لإضافة
+حقول ودوال الوحدات الجزئية بدون تعديل بيانات الوحدات الحالية.

@@ -73,6 +73,9 @@ create table if not exists public.properties (
   -- Code format: KY-S-00001 for sell, KY-R-00001 for rent
   property_code text not null unique,
   status public.property_status not null default 'available',
+  is_partial boolean not null default false,
+  availability_type text,
+  availability_other text not null default '',
   archived_at timestamptz,
   related_property_id uuid references public.properties(id) on delete set null,
   created_by uuid references auth.users(id) on delete set null,
@@ -106,6 +109,9 @@ alter table public.users add column if not exists can_view_customer_mobile boole
 alter table public.properties add column if not exists property_code text;
 alter table public.properties add column if not exists price text not null default '';
 alter table public.properties add column if not exists status public.property_status not null default 'available';
+alter table public.properties add column if not exists is_partial boolean not null default false;
+alter table public.properties add column if not exists availability_type text;
+alter table public.properties add column if not exists availability_other text not null default '';
 alter table public.properties add column if not exists archived_at timestamptz;
 alter table public.properties add column if not exists related_property_id uuid references public.properties(id) on delete set null;
 

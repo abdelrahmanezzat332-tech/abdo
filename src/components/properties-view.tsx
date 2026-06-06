@@ -16,10 +16,14 @@ import type { Property } from "@/lib/types";
 
 export function PropertiesView({
   archivedOnly = false,
-  hideAddAction = false
+  hideAddAction = false,
+  mode = "full",
+  includeAllCategories = false
 }: {
   archivedOnly?: boolean;
   hideAddAction?: boolean;
+  mode?: "full" | "partial";
+  includeAllCategories?: boolean;
 }) {
   const searchParams = useSearchParams();
   const { profile } = useAuth();
@@ -65,6 +69,7 @@ export function PropertiesView({
     const employeeTerm = employee.trim().toLowerCase();
 
     return properties.filter((property) => {
+      if (!includeAllCategories && property.is_partial !== (mode === "partial")) return false;
       const archived = Boolean(property.archived_at) || property.status === "sold" || property.status === "rented";
       if (archivedOnly && !archived) return false;
       if (!archivedOnly && archived) return false;
@@ -87,6 +92,8 @@ export function PropertiesView({
         statusText,
         property.operation,
         operationText,
+        property.availability_type ?? "",
+        property.availability_other ?? "",
         canViewMobile ? property.mobile : ""
       ];
       const matchesDataSearch = dataSearchTerm
@@ -98,7 +105,7 @@ export function PropertiesView({
       const matchesOperation = operation ? property.operation === operation : true;
       return matchesSearch && matchesDataSearch && matchesEmployee && matchesCity && matchesType && matchesOperation;
     });
-  }, [archivedOnly, canViewMobile, city, dataSearch, employee, operation, properties, search, type]);
+  }, [archivedOnly, canViewMobile, city, dataSearch, employee, includeAllCategories, mode, operation, properties, search, type]);
 
   async function deleteProperty(property: Property) {
     const confirmed = window.confirm(
@@ -228,9 +235,9 @@ export function PropertiesView({
       <div className="list-toolbar">
         <span>{filteredProperties.length} وحدة</span>
         {!hideAddAction && hasPermission(profile, "can_add_property") ? (
-          <Link className="primary-button compact" href="/properties/new">
+          <Link className="primary-button compact" href={mode === "partial" ? "/partial-units/new" : "/properties/new"}>
             <Plus size={18} />
-            إضافة وحدة
+            {mode === "partial" ? "إضافة وحدة جزئية" : "إضافة وحدة"}
           </Link>
         ) : null}
       </div>

@@ -11,6 +11,12 @@ export const propertyStatuses = [
   { value: "rented", label: "تم الإيجار" }
 ] as const;
 
+export const partialAvailabilityTypes = [
+  { value: "bed", label: "سرير" },
+  { value: "room", label: "غرفة" },
+  { value: "other", label: "أخرى" }
+] as const;
+
 export const cities = ["بدر", "الشروق", "مدينتي", "العبور"] as const;
 
 export const propertyTypes = [
