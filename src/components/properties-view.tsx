@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/empty-state";
 import { PropertyCard } from "@/components/property-card";
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/context/toast-context";
-import { cities, operations, propertyTypes } from "@/lib/constants";
+import { cities, operations, propertyStatuses, propertyTypes } from "@/lib/constants";
 import { hasPermission } from "@/lib/permissions";
 import { getSupabase } from "@/lib/supabase";
 import type { Property } from "@/lib/types";
@@ -27,6 +27,7 @@ export function PropertiesView({
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [dataSearch, setDataSearch] = useState("");
   const [employee, setEmployee] = useState("");
   const [city, setCity] = useState(searchParams.get("city") ?? "");
   const [type, setType] = useState("");
@@ -60,6 +61,7 @@ export function PropertiesView({
 
   const filteredProperties = useMemo(() => {
     const searchTerm = search.trim().toLowerCase();
+    const dataSearchTerm = dataSearch.trim().toLowerCase();
     const employeeTerm = employee.trim().toLowerCase();
 
     return properties.filter((property) => {
@@ -72,13 +74,31 @@ export function PropertiesView({
         : false;
       const matchesMobile = searchTerm ? canViewMobile && property.mobile.includes(searchTerm) : false;
       const matchesSearch = searchTerm ? matchesPropertyCode || matchesMobile : true;
+      const operationText = operations.find((item) => item.value === property.operation)?.label ?? "";
+      const statusText = propertyStatuses.find((item) => item.value === property.status)?.label ?? "";
+      const searchableValues = [
+        property.property_code ?? "",
+        property.description,
+        property.city,
+        property.property_type,
+        property.employee_name,
+        property.price,
+        property.status,
+        statusText,
+        property.operation,
+        operationText,
+        canViewMobile ? property.mobile : ""
+      ];
+      const matchesDataSearch = dataSearchTerm
+        ? searchableValues.some((value) => value.toLowerCase().includes(dataSearchTerm))
+        : true;
       const matchesEmployee = employeeTerm ? property.employee_name.toLowerCase().includes(employeeTerm) : true;
       const matchesCity = city ? property.city === city : true;
       const matchesType = type ? property.property_type === type : true;
       const matchesOperation = operation ? property.operation === operation : true;
-      return matchesSearch && matchesEmployee && matchesCity && matchesType && matchesOperation;
+      return matchesSearch && matchesDataSearch && matchesEmployee && matchesCity && matchesType && matchesOperation;
     });
-  }, [archivedOnly, canViewMobile, city, employee, operation, properties, search, type]);
+  }, [archivedOnly, canViewMobile, city, dataSearch, employee, operation, properties, search, type]);
 
   async function deleteProperty(property: Property) {
     const confirmed = window.confirm(
@@ -146,6 +166,18 @@ export function PropertiesView({
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder={canViewMobile ? "KY-S-00001 أو 010..." : "KY-S-00001"}
+              />
+            </div>
+          </label>
+
+          <label>
+            <span>بحث في بيانات الوحدة</span>
+            <div className="input-with-icon">
+              <Search size={17} />
+              <input
+                value={dataSearch}
+                onChange={(event) => setDataSearch(event.target.value)}
+                placeholder="اكتب أي كلمة من بيانات الوحدة"
               />
             </div>
           </label>
