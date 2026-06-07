@@ -1,8 +1,8 @@
 "use client";
 
-import { Filter, Plus, Search } from "lucide-react";
+import { Filter, Plus, RotateCcw, Search } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { CustomerCard } from "@/components/customer-card";
 import { EmptyState } from "@/components/empty-state";
@@ -46,12 +46,42 @@ export function CustomersView({ archivedOnly = false }: { archivedOnly?: boolean
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [archivedOnly]);
 
+  const resetFilters = useCallback(function resetFilters() {
+    setSearch("");
+    setCity("");
+  }, []);
+
+  useEffect(() => {
+    function handlePageShow(event: PageTransitionEvent) {
+      if (event.persisted) resetFilters();
+    }
+
+    window.addEventListener("pagehide", resetFilters);
+    window.addEventListener("pageshow", handlePageShow);
+    return () => {
+      window.removeEventListener("pagehide", resetFilters);
+      window.removeEventListener("pageshow", handlePageShow);
+    };
+  }, [resetFilters]);
+
   const filteredCustomers = useMemo(() => {
-    const phoneTerm = search.trim();
-    return customers.filter((c) => {
-      const matchesPhone = phoneTerm && canViewMobile ? c.mobile.includes(phoneTerm) : true;
-      const matchesCity = city ? c.city === city : true;
-      return matchesPhone && matchesCity;
+    const dataSearchTerm = search.trim().toLowerCase();
+
+    return customers.filter((customer) => {
+      const searchableValues = [
+        customer.customer_code,
+        customer.customer_name ?? "",
+        customer.representative_name ?? "",
+        customer.city,
+        customer.budget,
+        customer.notes,
+        canViewMobile ? customer.mobile : ""
+      ];
+      const matchesDataSearch = dataSearchTerm
+        ? searchableValues.some((value) => value.toLowerCase().includes(dataSearchTerm))
+        : true;
+      const matchesCity = city ? customer.city === city : true;
+      return matchesDataSearch && matchesCity;
     });
   }, [canViewMobile, city, customers, search]);
 
@@ -104,19 +134,17 @@ export function CustomersView({ archivedOnly = false }: { archivedOnly?: boolean
         </div>
 
         <div className="filters-grid customer-filters-grid">
-          {canViewMobile ? (
-            <label>
-              <span>بحث برقم موبايل العميل</span>
-              <div className="input-with-icon">
-                <Search size={17} />
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="010..."
-                />
-              </div>
-            </label>
-          ) : null}
+          <label>
+            <span>{canViewMobile ? "بحث في بيانات العميل أو رقم الموبايل" : "بحث في بيانات العميل"}</span>
+            <div className="input-with-icon">
+              <Search size={17} />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={canViewMobile ? "الكود، الاسم، الطلب، أو 010..." : "الكود، الاسم، أو الطلب"}
+              />
+            </div>
+          </label>
 
           <label>
             <span>المدينة</span>
@@ -127,6 +155,11 @@ export function CustomersView({ archivedOnly = false }: { archivedOnly?: boolean
               ))}
             </select>
           </label>
+
+          <button className="soft-button filter-reset-button" type="button" onClick={resetFilters}>
+            <RotateCcw size={17} />
+            مسح البحث
+          </button>
         </div>
       </section>
 

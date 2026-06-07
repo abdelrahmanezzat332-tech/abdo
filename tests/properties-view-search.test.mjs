@@ -32,3 +32,36 @@ test("properties view has a separate text search across all visible property dat
   assert.match(source, /value=\{dataSearch\}/);
   assert.match(source, /onChange=\{\(event\) => setDataSearch\(event\.target\.value\)\}/);
 });
+
+test("properties view resets manual filters when leaving or returning to the page", () => {
+  const source = readFileSync("src/components/properties-view.tsx", "utf8");
+
+  assert.match(source, /function resetFilters/);
+  assert.match(source, /setSearch\(""\)/);
+  assert.match(source, /setDataSearch\(""\)/);
+  assert.match(source, /setEmployee\(""\)/);
+  assert.match(source, /setType\(""\)/);
+  assert.match(source, /setCity\(initialCity\)/);
+  assert.match(source, /setOperation\(initialOperation\)/);
+  assert.match(source, /window\.addEventListener\("pagehide", resetFilters\)/);
+  assert.match(source, /window\.addEventListener\("pageshow", handlePageShow\)/);
+  assert.match(source, /مسح البحث/);
+});
+
+test("customers view searches across customer data and resets filters on return", () => {
+  const source = readFileSync("src/components/customers-view.tsx", "utf8");
+
+  assert.match(source, /function resetFilters/);
+  assert.match(source, /setSearch\(""\)/);
+  assert.match(source, /setCity\(""\)/);
+  assert.match(source, /window\.addEventListener\("pagehide", resetFilters\)/);
+  assert.match(source, /window\.addEventListener\("pageshow", handlePageShow\)/);
+  assert.match(source, /customer\.customer_code/);
+  assert.match(source, /customer\.customer_name \?\? ""/);
+  assert.match(source, /customer\.representative_name \?\? ""/);
+  assert.match(source, /customer\.budget/);
+  assert.match(source, /customer\.notes/);
+  assert.match(source, /canViewMobile \? customer\.mobile : ""/);
+  assert.match(source, /matchesDataSearch/);
+  assert.match(source, /مسح البحث/);
+});

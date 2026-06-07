@@ -1,9 +1,9 @@
 "use client";
 
-import { Filter, Plus, Search } from "lucide-react";
+import { Filter, Plus, RotateCcw, Search } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
 import { PropertyCard } from "@/components/property-card";
@@ -30,12 +30,14 @@ export function PropertiesView({
   const { showToast } = useToast();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const initialCity = searchParams.get("city") ?? "";
+  const initialOperation = searchParams.get("operation") ?? "";
   const [search, setSearch] = useState("");
   const [dataSearch, setDataSearch] = useState("");
   const [employee, setEmployee] = useState("");
-  const [city, setCity] = useState(searchParams.get("city") ?? "");
+  const [city, setCity] = useState(initialCity);
   const [type, setType] = useState("");
-  const [operation, setOperation] = useState(searchParams.get("operation") ?? "");
+  const [operation, setOperation] = useState(initialOperation);
   const canViewMobile = hasPermission(profile, "can_view_mobile");
   const cityOptions = useMemo(
     () => Array.from(new Set<string>([...cities, ...properties.map((property) => property.city).filter(Boolean)])),
@@ -62,6 +64,31 @@ export function PropertiesView({
     return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const resetFilters = useCallback(
+    function resetFilters() {
+      setSearch("");
+      setDataSearch("");
+      setEmployee("");
+      setType("");
+      setCity(initialCity);
+      setOperation(initialOperation);
+    },
+    [initialCity, initialOperation]
+  );
+
+  useEffect(() => {
+    function handlePageShow(event: PageTransitionEvent) {
+      if (event.persisted) resetFilters();
+    }
+
+    window.addEventListener("pagehide", resetFilters);
+    window.addEventListener("pageshow", handlePageShow);
+    return () => {
+      window.removeEventListener("pagehide", resetFilters);
+      window.removeEventListener("pageshow", handlePageShow);
+    };
+  }, [resetFilters]);
 
   const filteredProperties = useMemo(() => {
     const searchTerm = search.trim().toLowerCase();
@@ -229,6 +256,11 @@ export function PropertiesView({
               ))}
             </select>
           </label>
+
+          <button className="soft-button filter-reset-button" type="button" onClick={resetFilters}>
+            <RotateCcw size={17} />
+            مسح البحث
+          </button>
         </div>
       </section>
 
