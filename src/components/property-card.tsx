@@ -26,13 +26,17 @@ export function PropertyCard({
   profile,
   onDelete,
   onArchive,
-  onUnarchive
+  onUnarchive,
+  selected = false,
+  onSelectChange
 }: {
   property: Property;
   profile: UserProfile | null;
   onDelete: (property: Property) => void;
   onArchive?: (property: Property) => void;
   onUnarchive?: (property: Property) => void;
+  selected?: boolean;
+  onSelectChange?: (property: Property, selected: boolean) => void;
 }) {
   const [descriptionDrawerOpen, setDescriptionDrawerOpen] = useState(false);
   const canEdit = canManageProperty(profile, "edit");
@@ -48,6 +52,16 @@ export function PropertyCard({
   return (
     <>
       <article className="property-card unit-card">
+        {onSelectChange ? (
+          <label className="unit-share-checkbox">
+            <input
+              type="checkbox"
+              checked={selected}
+              onChange={(event) => onSelectChange(property, event.target.checked)}
+            />
+            <span>مشاركة الوحدة</span>
+          </label>
+        ) : null}
         {/* ── Badges ── */}
         <div className="card-topline">
           <div className="card-badges">

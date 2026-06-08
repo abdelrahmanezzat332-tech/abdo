@@ -1,6 +1,6 @@
 "use client";
 
-import { Filter, Plus, RotateCcw, Search } from "lucide-react";
+import { Filter, MessageCircle, Plus, RotateCcw, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -38,6 +38,7 @@ export function PropertiesView({
   const [city, setCity] = useState(initialCity);
   const [type, setType] = useState("");
   const [operation, setOperation] = useState(initialOperation);
+  const [selectedPropertyIds, setSelectedPropertyIds] = useState<string[]>([]);
   const canViewMobile = hasPermission(profile, "can_view_mobile");
   const cityOptions = useMemo(
     () => Array.from(new Set<string>([...cities, ...properties.map((property) => property.city).filter(Boolean)])),
@@ -133,6 +134,53 @@ export function PropertiesView({
       return matchesSearch && matchesDataSearch && matchesEmployee && matchesCity && matchesType && matchesOperation;
     });
   }, [archivedOnly, canViewMobile, city, dataSearch, employee, includeAllCategories, mode, operation, properties, search, type]);
+
+  const selectedProperties = useMemo(
+    () => properties.filter((property) => selectedPropertyIds.includes(property.id)),
+    [properties, selectedPropertyIds]
+  );
+
+  function togglePropertySelection(property: Property, selected: boolean) {
+    setSelectedPropertyIds((current) =>
+      selected
+        ? Array.from(new Set([...current, property.id]))
+        : current.filter((id) => id !== property.id)
+    );
+  }
+
+  function clearSelectedProperties() {
+    setSelectedPropertyIds([]);
+  }
+
+  function formatPropertyShareMessage(items: Property[]) {
+    return items
+      .map((property, index) => {
+        const lines = [
+          `${index + 1}. ${property.property_code ?? "وحدة بدون كود"}`,
+          `العملية: ${operations.find((item) => item.value === property.operation)?.label ?? property.operation}`,
+          `المدينة: ${property.city}`,
+          `نوع الوحدة: ${property.property_type}`,
+          property.price ? `السعر: ${property.price}` : "",
+          `الموظف: ${property.employee_name}`,
+          canViewMobile && property.mobile ? `الموبايل: ${property.mobile}` : "",
+          `الوصف: ${property.description}`
+        ].filter(Boolean);
+
+        return lines.join("\n");
+      })
+      .join("\n\n----------------\n\n");
+  }
+
+  function shareSelectedProperties() {
+    if (!selectedProperties.length) {
+      showToast("اختر وحدة واحدة على الأقل للمشاركة", "error");
+      return;
+    }
+
+    const message = formatPropertyShareMessage(selectedProperties);
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+  }
 
   async function deleteProperty(property: Property) {
     const confirmed = window.confirm(
@@ -266,12 +314,27 @@ export function PropertiesView({
 
       <div className="list-toolbar">
         <span>{filteredProperties.length} وحدة</span>
-        {!hideAddAction && hasPermission(profile, "can_add_property") ? (
-          <Link className="primary-button compact" href={mode === "partial" ? "/partial-units/new" : "/properties/new"}>
-            <Plus size={18} />
-            {mode === "partial" ? "إضافة وحدة جزئية" : "إضافة وحدة"}
-          </Link>
-        ) : null}
+        <div className="toolbar-actions">
+          {selectedPropertyIds.length ? (
+            <>
+              <span className="muted-pill">{selectedPropertyIds.length} محدد</span>
+              <button className="primary-button compact" type="button" onClick={shareSelectedProperties}>
+                <MessageCircle size={18} />
+                مشاركة واتساب
+              </button>
+              <button className="soft-button compact" type="button" onClick={clearSelectedProperties}>
+                <X size={18} />
+                إلغاء التحديد
+              </button>
+            </>
+          ) : null}
+          {!hideAddAction && hasPermission(profile, "can_add_property") ? (
+            <Link className="primary-button compact" href={mode === "partial" ? "/partial-units/new" : "/properties/new"}>
+              <Plus size={18} />
+              {mode === "partial" ? "إضافة وحدة جزئية" : "إضافة وحدة"}
+            </Link>
+          ) : null}
+        </div>
       </div>
 
       {loading ? (
@@ -290,6 +353,8 @@ export function PropertiesView({
               onDelete={deleteProperty}
               onArchive={archivedOnly ? undefined : archiveProperty}
               onUnarchive={archivedOnly ? unarchiveProperty : undefined}
+              selected={selectedPropertyIds.includes(property.id)}
+              onSelectChange={togglePropertySelection}
             />
           ))}
         </div>

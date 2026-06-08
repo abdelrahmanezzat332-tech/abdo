@@ -65,3 +65,22 @@ test("customers view searches across customer data and resets filters on return"
   assert.match(source, /matchesDataSearch/);
   assert.match(source, /مسح البحث/);
 });
+
+test("properties view can select units and share selected details to WhatsApp", () => {
+  const viewSource = readFileSync("src/components/properties-view.tsx", "utf8");
+  const cardSource = readFileSync("src/components/property-card.tsx", "utf8");
+
+  assert.match(viewSource, /selectedPropertyIds/);
+  assert.match(viewSource, /togglePropertySelection/);
+  assert.match(viewSource, /clearSelectedProperties/);
+  assert.match(viewSource, /shareSelectedProperties/);
+  assert.match(viewSource, /formatPropertyShareMessage/);
+  assert.match(viewSource, /https:\/\/wa\.me\/\?text=/);
+  assert.match(viewSource, /window\.open\(whatsappUrl, "_blank", "noopener,noreferrer"\)/);
+  assert.match(viewSource, /مشاركة واتساب/);
+  assert.match(viewSource, /إلغاء التحديد/);
+  assert.match(cardSource, /selected\?: boolean/);
+  assert.match(cardSource, /onSelectChange\?: \(property: Property, selected: boolean\) => void/);
+  assert.match(cardSource, /type="checkbox"/);
+  assert.match(cardSource, /مشاركة الوحدة/);
+});

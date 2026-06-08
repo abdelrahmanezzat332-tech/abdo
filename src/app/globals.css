@@ -306,6 +306,11 @@ label span {
   padding: 0.65rem 0.9rem;
 }
 
+.soft-button.compact {
+  min-height: 42px;
+  padding: 0.65rem 0.9rem;
+}
+
 .soft-button {
   border: 1px solid var(--border);
   padding: 0.62rem 0.85rem;
@@ -636,6 +641,14 @@ label span {
   font-weight: 900;
 }
 
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
 /* ── Properties / Customers grid ─────────────────── */
 .properties-grid {
   display: grid;
@@ -672,6 +685,34 @@ label span {
 
 .unit-card {
   min-height: 300px;
+}
+
+.unit-share-checkbox {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 0.45rem;
+  width: auto;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.38rem 0.65rem;
+  color: var(--navy);
+  background: var(--surface-soft);
+  font-size: 0.9rem;
+}
+
+.unit-share-checkbox input {
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--navy);
+}
+
+.unit-share-checkbox span {
+  font-size: 0.86rem;
+  font-weight: 900;
+  white-space: nowrap;
 }
 
 /* ── Card topline ────────────────────────────────── */
