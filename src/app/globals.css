@@ -1953,6 +1953,140 @@ label span {
   animation: pageEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+.shared-filters-panel {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.6fr) repeat(3, minmax(150px, 0.75fr)) auto;
+  gap: 0.8rem;
+  align-items: end;
+  margin-bottom: 1.4rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 30px rgba(7, 27, 52, 0.06);
+}
+
+.shared-search-field {
+  min-width: 0;
+}
+
+.shared-results-count {
+  display: grid;
+  place-items: center;
+  min-width: 110px;
+  min-height: 48px;
+  border: 1px solid rgba(212, 175, 55, 0.38);
+  border-radius: 8px;
+  padding: 0.45rem 0.8rem;
+  color: var(--navy);
+  background: rgba(212, 175, 55, 0.08);
+  text-align: center;
+}
+
+.shared-results-count strong {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.shared-results-count span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.shared-city-sections,
+.shared-category-section {
+  display: grid;
+  gap: 1rem;
+}
+
+.shared-city-section {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+}
+
+.shared-city-header,
+.shared-category-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.shared-city-header {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.7rem;
+}
+
+.shared-city-header div {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  color: var(--navy);
+}
+
+.shared-city-header h2,
+.shared-category-header h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.shared-city-header h2 {
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+}
+
+.shared-city-header > span,
+.shared-category-header span {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  color: var(--muted);
+  background: var(--surface-soft);
+  font-weight: 900;
+  font-size: 0.82rem;
+}
+
+.shared-category-section {
+  border: 1px solid rgba(208, 218, 232, 0.75);
+  border-radius: 10px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.shared-category-header h3 {
+  color: var(--navy);
+  font-size: 1.05rem;
+}
+
+@media (max-width: 1180px) {
+  .shared-filters-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .shared-filters-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .shared-results-count {
+    justify-items: start;
+    text-align: start;
+  }
+
+  .shared-city-header,
+  .shared-category-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .shared-category-section {
+    padding: 0.85rem;
+  }
+}
+
 /* ── Property Card Cover Images & Styles ── */
 .property-card-cover {
   position: relative;

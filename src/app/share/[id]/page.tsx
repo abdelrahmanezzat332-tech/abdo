@@ -8,10 +8,11 @@ import {
   MapPin,
   MessageCircle,
   Phone,
+  Search,
   UserRound,
   X
 } from "lucide-react";
-import { use, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useMemo, useState } from "react";
 
 import { formatDate, operationLabel } from "@/lib/format";
 import { getSupabase } from "@/lib/supabase";
@@ -21,7 +22,27 @@ type SharePageProps = {
   params: Promise<{ id: string }>;
 };
 
-type SharedProperty = Property & {
+type SharedProperty = Omit<
+  Property,
+  | "property_code"
+  | "city"
+  | "property_type"
+  | "employee_name"
+  | "mobile"
+  | "description"
+  | "price"
+  | "status"
+  | "availability_other"
+> & {
+  property_code: string | null;
+  city: string | null;
+  property_type: string | null;
+  employee_name: string | null;
+  mobile: string | null;
+  description: string | null;
+  price: string | null;
+  status: PropertyStatus | null;
+  availability_other: string | null;
   visible_fields?: string[];
 };
 
@@ -38,13 +59,13 @@ function getErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
-function statusLabel(status: PropertyStatus) {
+function statusLabel(status: PropertyStatus | null) {
   if (status === "sold") return "تم البيع";
   if (status === "rented") return "تم الإيجار";
   return "متوفرة";
 }
 
-function statusClass(status: PropertyStatus) {
+function statusClass(status: PropertyStatus | null) {
   if (status === "sold") return "status-sold";
   if (status === "rented") return "status-rented";
   return "status-available";
@@ -80,6 +101,10 @@ export default function SharePage({ params }: SharePageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDesc, setSelectedDesc] = useState<SharedProperty | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [cityFilter, setCityFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [operationFilter, setOperationFilter] = useState("");
 
   useEffect(() => {
     async function fetchShared() {
@@ -116,6 +141,97 @@ export default function SharePage({ params }: SharePageProps) {
     }
     fetchShared();
   }, [id]);
+
+  const canShow = useCallback((field: string) => visibleFields.includes(field), [visibleFields]);
+
+  const cityOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          properties
+            .map((property) => property.city)
+            .filter((city): city is string => Boolean(city))
+        )
+      ),
+    [properties]
+  );
+
+  const typeOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          properties
+            .map((property) => property.property_type)
+            .filter((type): type is string => Boolean(type))
+        )
+      ),
+    [properties]
+  );
+
+  const filteredProperties = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+
+    return properties.filter((property) => {
+      if (cityFilter && property.city !== cityFilter) return false;
+      if (typeFilter && property.property_type !== typeFilter) return false;
+      if (operationFilter && property.operation !== operationFilter) return false;
+
+      if (!term) return true;
+
+      const searchableValues = [
+        operationLabel(property.operation),
+        canShow("property_code") ? property.property_code : "",
+        canShow("city") ? property.city : "",
+        canShow("property_type") ? property.property_type : "",
+        canShow("employee_name") ? property.employee_name : "",
+        canShow("mobile") ? property.mobile : "",
+        canShow("description") ? property.description : "",
+        canShow("price") ? property.price : "",
+        canShow("status") ? statusLabel(property.status) : "",
+        canShow("availability_type") ? getAvailabilityLabel(property) : ""
+      ];
+
+      return searchableValues
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(term));
+    });
+  }, [canShow, cityFilter, operationFilter, properties, searchTerm, typeFilter]);
+
+  const groupedProperties = useMemo(() => {
+    const cityMap = new Map<
+      string,
+      {
+        city: string;
+        total: number;
+        categories: Map<string, { category: string; items: SharedProperty[] }>;
+      }
+    >();
+
+    filteredProperties.forEach((property) => {
+      const cityName = canShow("city") && property.city ? property.city : "مدينة غير معلنة";
+      const categoryName =
+        canShow("property_type") && property.property_type ? property.property_type : "نوع الوحدة غير معلن";
+
+      if (!cityMap.has(cityName)) {
+        cityMap.set(cityName, { city: cityName, total: 0, categories: new Map() });
+      }
+
+      const cityGroup = cityMap.get(cityName)!;
+      cityGroup.total += 1;
+
+      if (!cityGroup.categories.has(categoryName)) {
+        cityGroup.categories.set(categoryName, { category: categoryName, items: [] });
+      }
+
+      cityGroup.categories.get(categoryName)!.items.push(property);
+    });
+
+    return Array.from(cityMap.values()).map((cityGroup) => ({
+      city: cityGroup.city,
+      total: cityGroup.total,
+      categories: Array.from(cityGroup.categories.values())
+    }));
+  }, [canShow, filteredProperties]);
 
   return (
     <div className="shared-layout" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#f8fafc" }}>
@@ -217,139 +333,220 @@ export default function SharePage({ params }: SharePageProps) {
               </p>
             </div>
 
-            {/* Properties Grid */}
-            <div className="properties-grid">
-              {properties.map((property, index) => (
-                <article
-                  key={property.id}
-                  className="property-card unit-card shared-property-card animate-card-fade-in"
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    minHeight: "350px",
-                    animationDelay: `${index * 0.08}s` // Dynamic Staggered delay!
-                  }}
-                >
-                  {/* Badges */}
-                  <div className="card-topline">
-                    <div className="card-badges">
-                      <span className={`badge ${property.operation === "sell" ? "badge-gold" : "badge-blue"}`}>
-                        {operationLabel(property.operation)}
-                      </span>
-                      {visibleFields.includes("property_type") && property.property_type && (
-                        <span className="muted-pill">{property.property_type}</span>
-                      )}
-                      {visibleFields.includes("property_code") && property.property_code && (
-                        <span className="muted-pill">كود: {property.property_code}</span>
-                      )}
-                      {visibleFields.includes("status") && property.status && (
-                        <span className={`muted-pill ${statusClass(property.status)}`}>
-                          {statusLabel(property.status)}
-                        </span>
-                      )}
-                      {property.is_partial && visibleFields.includes("availability_type") && property.availability_type && (
-                        <span className="muted-pill">المتاح: {getAvailabilityLabel(property)}</span>
-                      )}
-                    </div>
-                  </div>
+            <section className="shared-filters-panel">
+              <label className="shared-search-field">
+                <span>بحث في الوحدات المعروضة</span>
+                <div className="input-with-icon">
+                  <Search size={17} />
+                  <input
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    placeholder="ابحث بالكود، المدينة، النوع، السعر أو الوصف"
+                  />
+                </div>
+              </label>
 
-                  {/* Location */}
-                  {visibleFields.includes("city") && property.city && (
-                    <div className="card-location" style={{ marginTop: "0.5rem" }}>
-                      <MapPin size={16} />
-                      <strong>{property.city}</strong>
-                    </div>
-                  )}
+              {canShow("city") ? (
+                <label>
+                  <span>المدينة</span>
+                  <select value={cityFilter} onChange={(event) => setCityFilter(event.target.value)}>
+                    <option value="">كل المدن</option>
+                    {cityOptions.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
 
-                  {/* Description */}
-                  {visibleFields.includes("description") && property.description && (
-                    <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.5rem" }}>
-                      <p className="property-description" style={{
-                        display: "-webkit-box",
-                        overflow: "hidden",
-                        WebkitBoxOrient: "vertical",
-                        WebkitLineClamp: 4,
-                        lineHeight: 1.7,
-                        margin: 0
-                      }}>
-                        {property.description}
-                      </p>
-                      <button
-                        className="description-more-button"
-                        type="button"
-                        onClick={() => setSelectedDesc(property)}
-                        style={{ marginTop: "auto" }}
-                      >
-                        <FileText size={15} />
-                        عرض التفاصيل بالكامل
-                      </button>
-                    </div>
-                  )}
+              {canShow("property_type") ? (
+                <label>
+                  <span>نوع الوحدة</span>
+                  <select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)}>
+                    <option value="">كل الأنواع</option>
+                    {typeOptions.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
 
-                  {/* Meta */}
-                  <div className="property-meta" style={{ marginTop: "auto", borderTop: "1px solid var(--border)", paddingTop: "0.85rem", gap: "0.45rem" }}>
-                    {visibleFields.includes("price") && property.price && (
-                      <span className="property-price" style={{ fontSize: "1.1rem", color: "var(--navy)" }}>
-                        <Banknote size={17} />
-                        <strong>{property.price}</strong>
-                      </span>
-                    )}
-                    {visibleFields.includes("employee_name") && property.employee_name && (
-                      <span>
-                        <UserRound size={15} />
-                        المسؤول: {property.employee_name}
-                      </span>
-                    )}
-                    {visibleFields.includes("mobile") && property.mobile && (
-                      <span>
-                        <Phone size={15} />
-                        الهاتف: {property.mobile}
-                      </span>
-                    )}
-                    {visibleFields.includes("created_at") && property.created_at && (
-                      <span>
-                        <CalendarDays size={15} />
-                        نُشر في: {formatDate(property.created_at)}
-                      </span>
-                    )}
-                  </div>
+              <label>
+                <span>نوع العملية</span>
+                <select value={operationFilter} onChange={(event) => setOperationFilter(event.target.value)}>
+                  <option value="">بيع وإيجار</option>
+                  <option value="sell">بيع</option>
+                  <option value="rent">إيجار</option>
+                </select>
+              </label>
 
-                  {/* Contact Actions */}
-                  {visibleFields.includes("mobile") && property.mobile && (
-                    <div className="card-actions" style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem", borderTop: "1px solid var(--border)", paddingTop: "0.75rem", width: "100%" }}>
-                      <a
-                        href={`tel:${property.mobile}`}
-                        className="soft-button compact"
-                        style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center" }}
-                      >
-                        <Phone size={16} />
-                        اتصال هاتفي
-                      </a>
-                      <a
-                        href={getWhatsAppUrl(property.mobile, property.property_code)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="primary-button compact"
-                        style={{
-                          flex: 1,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          backgroundColor: "#25D366",
-                          backgroundImage: "none",
-                          color: "#fff",
-                          border: "none",
-                          boxShadow: "none"
-                        }}
-                      >
-                        <MessageCircle size={16} />
-                        واتساب
-                      </a>
-                    </div>
-                  )}
-                </article>
-              ))}
-            </div>
+              <div className="shared-results-count">
+                <strong>{filteredProperties.length}</strong>
+                <span>وحدة مطابقة</span>
+              </div>
+            </section>
+
+            {filteredProperties.length ? (
+              <div className="shared-city-sections">
+                {groupedProperties.map((cityGroup) => (
+                  <section className="shared-city-section" key={cityGroup.city}>
+                    <header className="shared-city-header">
+                      <div>
+                        <MapPin size={20} />
+                        <h2>{cityGroup.city}</h2>
+                      </div>
+                      <span>{cityGroup.total} وحدة</span>
+                    </header>
+
+                    {cityGroup.categories.map((categoryGroup) => (
+                      <section className="shared-category-section" key={`${cityGroup.city}-${categoryGroup.category}`}>
+                        <div className="shared-category-header">
+                          <h3>{categoryGroup.category}</h3>
+                          <span>{categoryGroup.items.length} وحدة</span>
+                        </div>
+
+                        <div className="properties-grid">
+                          {categoryGroup.items.map((property, index) => (
+                            <article
+                              key={property.id}
+                              className="property-card unit-card shared-property-card animate-card-fade-in"
+                              style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                minHeight: "350px",
+                                animationDelay: `${index * 0.06}s`
+                              }}
+                            >
+                              <div className="card-topline">
+                                <div className="card-badges">
+                                  <span className={`badge ${property.operation === "sell" ? "badge-gold" : "badge-blue"}`}>
+                                    {operationLabel(property.operation)}
+                                  </span>
+                                  {canShow("property_type") && property.property_type && (
+                                    <span className="muted-pill">{property.property_type}</span>
+                                  )}
+                                  {canShow("property_code") && property.property_code && (
+                                    <span className="muted-pill">كود: {property.property_code}</span>
+                                  )}
+                                  {canShow("status") && property.status && (
+                                    <span className={`muted-pill ${statusClass(property.status)}`}>
+                                      {statusLabel(property.status)}
+                                    </span>
+                                  )}
+                                  {property.is_partial && canShow("availability_type") && property.availability_type && (
+                                    <span className="muted-pill">المتاح: {getAvailabilityLabel(property)}</span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {canShow("city") && property.city && (
+                                <div className="card-location" style={{ marginTop: "0.5rem" }}>
+                                  <MapPin size={16} />
+                                  <strong>{property.city}</strong>
+                                </div>
+                              )}
+
+                              {canShow("description") && property.description && (
+                                <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.5rem" }}>
+                                  <p className="property-description" style={{
+                                    display: "-webkit-box",
+                                    overflow: "hidden",
+                                    WebkitBoxOrient: "vertical",
+                                    WebkitLineClamp: 4,
+                                    lineHeight: 1.7,
+                                    margin: 0
+                                  }}>
+                                    {property.description}
+                                  </p>
+                                  <button
+                                    className="description-more-button"
+                                    type="button"
+                                    onClick={() => setSelectedDesc(property)}
+                                    style={{ marginTop: "auto" }}
+                                  >
+                                    <FileText size={15} />
+                                    عرض التفاصيل بالكامل
+                                  </button>
+                                </div>
+                              )}
+
+                              <div className="property-meta" style={{ marginTop: "auto", borderTop: "1px solid var(--border)", paddingTop: "0.85rem", gap: "0.45rem" }}>
+                                {canShow("price") && property.price && (
+                                  <span className="property-price" style={{ fontSize: "1.1rem", color: "var(--navy)" }}>
+                                    <Banknote size={17} />
+                                    <strong>{property.price}</strong>
+                                  </span>
+                                )}
+                                {canShow("employee_name") && property.employee_name && (
+                                  <span>
+                                    <UserRound size={15} />
+                                    المسؤول: {property.employee_name}
+                                  </span>
+                                )}
+                                {canShow("mobile") && property.mobile && (
+                                  <span>
+                                    <Phone size={15} />
+                                    الهاتف: {property.mobile}
+                                  </span>
+                                )}
+                                {canShow("created_at") && property.created_at && (
+                                  <span>
+                                    <CalendarDays size={15} />
+                                    نُشر في: {formatDate(property.created_at)}
+                                  </span>
+                                )}
+                              </div>
+
+                              {canShow("mobile") && property.mobile && (
+                                <div className="card-actions" style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem", borderTop: "1px solid var(--border)", paddingTop: "0.75rem", width: "100%" }}>
+                                  <a
+                                    href={`tel:${property.mobile}`}
+                                    className="soft-button compact"
+                                    style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+                                  >
+                                    <Phone size={16} />
+                                    اتصال هاتفي
+                                  </a>
+                                  <a
+                                    href={getWhatsAppUrl(property.mobile, property.property_code)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="primary-button compact"
+                                    style={{
+                                      flex: 1,
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      backgroundColor: "#25D366",
+                                      backgroundImage: "none",
+                                      color: "#fff",
+                                      border: "none",
+                                      boxShadow: "none"
+                                    }}
+                                  >
+                                    <MessageCircle size={16} />
+                                    واتساب
+                                  </a>
+                                </div>
+                              )}
+                            </article>
+                          ))}
+                        </div>
+                      </section>
+                    ))}
+                  </section>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state" style={{ minHeight: "30vh", marginTop: "1rem" }}>
+                <Home size={42} style={{ color: "var(--gold)", marginBottom: "0.5rem" }} />
+                <h3>لا توجد وحدات مطابقة</h3>
+                <p>جرّب تغيير كلمات البحث أو الفلاتر الحالية.</p>
+              </div>
+            )}
           </>
         )}
       </main>

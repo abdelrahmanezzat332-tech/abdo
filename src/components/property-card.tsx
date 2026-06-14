@@ -1,6 +1,6 @@
 "use client";
 
-import { Archive, Banknote, CalendarDays, Edit3, FileText, MapPin, Phone, Trash2, UserRound, X } from "lucide-react";
+import { Archive, Banknote, CalendarDays, Edit3, FileText, MapPin, Phone, RefreshCw, Trash2, UserRound, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -27,6 +27,8 @@ export function PropertyCard({
   onDelete,
   onArchive,
   onUnarchive,
+  onRefresh,
+  refreshing = false,
   selected = false,
   onSelectChange
 }: {
@@ -35,6 +37,8 @@ export function PropertyCard({
   onDelete: (property: Property) => void;
   onArchive?: (property: Property) => void;
   onUnarchive?: (property: Property) => void;
+  onRefresh?: (property: Property) => void;
+  refreshing?: boolean;
   selected?: boolean;
   onSelectChange?: (property: Property, selected: boolean) => void;
 }) {
@@ -104,6 +108,9 @@ export function PropertyCard({
             <span className="property-price"><Banknote size={15} />{property.price}</span>
           ) : null}
           <span><CalendarDays size={15} />{formatDate(property.created_at)}</span>
+          {property.last_refreshed_at ? (
+            <span><RefreshCw size={15} />آخر تحديث: {formatDate(property.last_refreshed_at)}</span>
+          ) : null}
           {isArchived && property.archived_at ? (
             <span><Archive size={15} />أُرشف: {formatDate(property.archived_at)}</span>
           ) : null}
@@ -120,6 +127,12 @@ export function PropertyCard({
                 <Edit3 size={15} />
                 تعديل
               </Link>
+            ) : null}
+            {canEdit && !isArchived && onRefresh ? (
+              <button className="soft-button" type="button" onClick={() => onRefresh(property)} disabled={refreshing}>
+                <RefreshCw size={15} />
+                {refreshing ? "جاري التحديث..." : "تحديث"}
+              </button>
             ) : null}
             {canEdit && !isArchived && onArchive ? (
               <button className="soft-button" type="button" onClick={() => onArchive(property)}>

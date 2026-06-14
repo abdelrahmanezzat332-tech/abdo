@@ -80,7 +80,8 @@ create table if not exists public.properties (
   related_property_id uuid references public.properties(id) on delete set null,
   created_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  last_refreshed_at timestamptz
 );
 
 create table if not exists public.customers (
@@ -114,6 +115,7 @@ alter table public.properties add column if not exists availability_type text;
 alter table public.properties add column if not exists availability_other text not null default '';
 alter table public.properties add column if not exists archived_at timestamptz;
 alter table public.properties add column if not exists related_property_id uuid references public.properties(id) on delete set null;
+alter table public.properties add column if not exists last_refreshed_at timestamptz;
 
 alter table public.customers add column if not exists customer_code text;
 alter table public.customers add column if not exists customer_name text;
@@ -341,9 +343,10 @@ returns table (
   id uuid, property_code text, operation public.operation_type,
   city text, property_type text, employee_name text, mobile text,
   description text, price text,
-  status public.property_status, archived_at timestamptz,
-  related_property_id uuid, created_by uuid,
-  created_at timestamptz, updated_at timestamptz
+  status public.property_status, is_partial boolean,
+  availability_type text, availability_other text,
+  archived_at timestamptz, related_property_id uuid, created_by uuid,
+  created_at timestamptz, updated_at timestamptz, last_refreshed_at timestamptz
 )
 language sql stable security definer set search_path = public
 as $$
@@ -353,9 +356,11 @@ as $$
     case when public.can_view_mobile() then p.mobile else '' end as mobile,
     p.description,
     p.price,
-    p.status, p.archived_at,
+    p.status, p.is_partial,
+    p.availability_type, p.availability_other,
+    p.archived_at,
     p.related_property_id, p.created_by,
-    p.created_at, p.updated_at
+    p.created_at, p.updated_at, p.last_refreshed_at
   from public.properties p
   where auth.uid() is not null
   order by p.created_at desc;
@@ -368,9 +373,10 @@ returns table (
   id uuid, property_code text, operation public.operation_type,
   city text, property_type text, employee_name text, mobile text,
   description text, price text,
-  status public.property_status, archived_at timestamptz,
-  related_property_id uuid, created_by uuid,
-  created_at timestamptz, updated_at timestamptz
+  status public.property_status, is_partial boolean,
+  availability_type text, availability_other text,
+  archived_at timestamptz, related_property_id uuid, created_by uuid,
+  created_at timestamptz, updated_at timestamptz, last_refreshed_at timestamptz
 )
 language sql stable security definer set search_path = public
 as $$
@@ -380,9 +386,11 @@ as $$
     case when public.can_view_mobile() then p.mobile else '' end as mobile,
     p.description,
     p.price,
-    p.status, p.archived_at,
+    p.status, p.is_partial,
+    p.availability_type, p.availability_other,
+    p.archived_at,
     p.related_property_id, p.created_by,
-    p.created_at, p.updated_at
+    p.created_at, p.updated_at, p.last_refreshed_at
   from public.properties p
   where auth.uid() is not null
     and p.id = p_property_id
@@ -399,9 +407,10 @@ returns table (
   id uuid, property_code text, operation public.operation_type,
   city text, property_type text, employee_name text, mobile text,
   description text, price text,
-  status public.property_status, archived_at timestamptz,
-  related_property_id uuid, created_by uuid,
-  created_at timestamptz, updated_at timestamptz
+  status public.property_status, is_partial boolean,
+  availability_type text, availability_other text,
+  archived_at timestamptz, related_property_id uuid, created_by uuid,
+  created_at timestamptz, updated_at timestamptz, last_refreshed_at timestamptz
 )
 language sql stable security definer set search_path = public
 as $$
@@ -411,9 +420,11 @@ as $$
     case when public.can_view_mobile() then p.mobile else '' end as mobile,
     p.description,
     p.price,
-    p.status, p.archived_at,
+    p.status, p.is_partial,
+    p.availability_type, p.availability_other,
+    p.archived_at,
     p.related_property_id, p.created_by,
-    p.created_at, p.updated_at
+    p.created_at, p.updated_at, p.last_refreshed_at
   from public.properties p
   where auth.uid() is not null
     and p.mobile = lookup_mobile
@@ -546,6 +557,39 @@ begin
   if not found then
     raise exception 'Property was not found.';
   end if;
+end;
+$$;
+
+-- ── refresh_property_timestamp ────────────────────────────────────────────────
+create or replace function public.refresh_property_timestamp(p_property_id uuid)
+returns timestamptz
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_refreshed_at timestamptz;
+begin
+  if auth.uid() is null then
+    raise exception 'Authentication is required.';
+  end if;
+
+  if not exists (
+    select 1 from public.users
+    where auth_id = auth.uid()
+      and (role = 'admin' or can_edit_property = true)
+  ) then
+    raise exception 'You do not have permission to update properties.';
+  end if;
+
+  update public.properties
+  set last_refreshed_at = now()
+  where properties.id = p_property_id
+  returning properties.last_refreshed_at into v_refreshed_at;
+
+  if not found then
+    raise exception 'Property was not found.';
+  end if;
+
+  return v_refreshed_at;
 end;
 $$;
 

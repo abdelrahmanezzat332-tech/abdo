@@ -57,9 +57,10 @@ export type Property = {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  last_refreshed_at: string | null;
 };
 
-export type PropertyInput = Omit<Property, "id" | "created_at" | "updated_at">;
+export type PropertyInput = Omit<Property, "id" | "created_at" | "updated_at" | "last_refreshed_at">;
 
 export type Customer = {
   id: string;

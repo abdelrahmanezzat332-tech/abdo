@@ -41,6 +41,7 @@ export function PropertiesView({
   const [operation, setOperation] = useState(initialOperation);
   const [selectedPropertyIds, setSelectedPropertyIds] = useState<string[]>([]);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [refreshingPropertyId, setRefreshingPropertyId] = useState<string | null>(null);
   const canViewMobile = hasPermission(profile, "can_view_mobile");
   const cityOptions = useMemo(
     () => Array.from(new Set<string>([...cities, ...properties.map((property) => property.city).filter(Boolean)])),
@@ -233,6 +234,27 @@ export function PropertiesView({
     setProperties((current) => current.filter((item) => item.id !== property.id));
   }
 
+  async function refreshProperty(property: Property) {
+    setRefreshingPropertyId(property.id);
+    const supabase = getSupabase();
+    const { data, error } = await supabase.rpc("refresh_property_timestamp", { p_property_id: property.id });
+
+    if (error) {
+      showToast(error.message, "error");
+      setRefreshingPropertyId(null);
+      return;
+    }
+
+    const refreshedAt = typeof data === "string" ? data : new Date().toISOString();
+    setProperties((current) =>
+      current.map((item) =>
+        item.id === property.id ? { ...item, last_refreshed_at: refreshedAt } : item
+      )
+    );
+    showToast("تم تحديث تاريخ الوحدة بنجاح", "success");
+    setRefreshingPropertyId(null);
+  }
+
   return (
     <>
       <section className="filters-panel">
@@ -359,6 +381,8 @@ export function PropertiesView({
               onDelete={deleteProperty}
               onArchive={archivedOnly ? undefined : archiveProperty}
               onUnarchive={archivedOnly ? unarchiveProperty : undefined}
+              onRefresh={refreshProperty}
+              refreshing={refreshingPropertyId === property.id}
               selected={selectedPropertyIds.includes(property.id)}
               onSelectChange={togglePropertySelection}
             />

@@ -56,10 +56,10 @@ declare
   v_is_dynamic boolean;
   v_dynamic_type text;
 begin
-  select property_ids, visible_fields, is_dynamic, dynamic_type
+  select sl.property_ids, sl.visible_fields, sl.is_dynamic, sl.dynamic_type
   into v_property_ids, v_visible_fields, v_is_dynamic, v_dynamic_type
-  from public.shared_links
-  where id = p_share_id;
+  from public.shared_links as sl
+  where sl.id = p_share_id;
 
   if not found then
     return;
