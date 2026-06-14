@@ -99,18 +99,23 @@ export default function SharePage({ params }: SharePageProps) {
   }, [id]);
 
   return (
-    <div className="shared-layout" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      {/* Header */}
+    <div className="shared-layout" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#f8fafc" }}>
+      {/* Premium Header */}
       <header
         className="shared-header"
         style={{
-          background: "linear-gradient(135deg, var(--navy), var(--navy-2))",
+          background: "linear-gradient(135deg, #071b34 0%, #0d2c52 100%)",
           color: "#fff",
-          padding: "1.25rem 2rem",
-          boxShadow: "var(--shadow)",
+          padding: "1.1rem 2rem",
+          boxShadow: "0 4px 25px rgba(7, 27, 52, 0.15)",
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center"
+          alignItems: "center",
+          position: "sticky",
+          top: 0,
+          zIndex: 50,
+          backdropFilter: "blur(8px)",
+          borderBottom: "1px solid rgba(199, 155, 54, 0.2)"
         }}
       >
         <div className="brand" style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}>
@@ -123,24 +128,26 @@ export default function SharePage({ params }: SharePageProps) {
             color: "var(--navy)",
             background: "linear-gradient(135deg, var(--gold), var(--gold-2))",
             fontWeight: "900",
-            fontSize: "1.25rem"
+            fontSize: "1.25rem",
+            boxShadow: "0 0 15px rgba(199, 155, 54, 0.3)"
           }}>
             ك
           </span>
           <span style={{ display: "flex", flexDirection: "column" }}>
-            <strong style={{ fontSize: "1.2rem", color: "#fff" }}>الكيان</strong>
-            <small style={{ fontSize: "0.8rem", color: "rgba(255, 255, 255, 0.7)" }}>تسويق عقاري</small>
+            <strong style={{ fontSize: "1.25rem", color: "#fff", letterSpacing: "0.5px" }}>الكيان</strong>
+            <small style={{ fontSize: "0.8rem", color: "rgba(255, 255, 255, 0.7)", fontWeight: "bold" }}>تسويق عقاري</small>
           </span>
         </div>
         <div
           className="eyebrow"
           style={{
             borderRadius: "999px",
-            padding: "0.35rem 0.85rem",
-            color: "#fff",
-            background: "rgba(255, 255, 255, 0.15)",
+            padding: "0.4rem 0.95rem",
+            color: "var(--gold-2)",
+            background: "rgba(199, 155, 54, 0.12)",
             fontSize: "0.85rem",
-            fontWeight: "bold"
+            fontWeight: "900",
+            border: "1px solid rgba(199, 155, 54, 0.25)"
           }}
         >
           عرض الوحدات العقارية
@@ -152,7 +159,7 @@ export default function SharePage({ params }: SharePageProps) {
         {loading ? (
           <div className="loading-screen" style={{ minHeight: "60vh" }}>
             <div className="loader-ring" />
-            <p>جاري تحميل الوحدات العقارية...</p>
+            <p>جاري تحميل الوحدات العقارية الأكثر تميزاً...</p>
           </div>
         ) : error ? (
           <div className="empty-state" style={{ minHeight: "50vh", marginTop: "2rem" }}>
@@ -162,16 +169,48 @@ export default function SharePage({ params }: SharePageProps) {
           </div>
         ) : (
           <>
-            <div style={{ marginBottom: "2rem", borderBottom: "1px solid var(--border)", paddingBottom: "1rem" }}>
-              <h2 style={{ color: "var(--navy)", margin: 0, fontSize: "1.8rem" }}>العقارات المقترحة لك</h2>
-              <p style={{ color: "var(--muted)", margin: "0.5rem 0 0" }}>
-                إليك قائمة بالوحدات العقارية المتاحة التي تم تحديدها لمشاركتها معك. يمكنك مراجعة التفاصيل أدناه والتواصل مباشرة مع المسؤول.
+            {/* Real Estate Hero Banner with Beautiful Image Overlay */}
+            <div
+              className="shared-hero-banner"
+              style={{
+                position: "relative",
+                minHeight: "220px",
+                borderRadius: "14px",
+                overflow: "hidden",
+                marginBottom: "2.5rem",
+                backgroundImage: 'linear-gradient(to bottom, rgba(7, 27, 52, 0.35), rgba(7, 27, 52, 0.88)), url("https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=80")',
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "flex-end",
+                padding: "2rem max(1.5rem, 3vw)",
+                color: "#fff",
+                boxShadow: "0 15px 45px rgba(7, 27, 52, 0.18)"
+              }}
+            >
+              <h2 style={{ fontSize: "2rem", fontWeight: "900", margin: 0, color: "#fff", textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)" }}>
+                العقارات المقترحة لك
+              </h2>
+              <p style={{ color: "rgba(255, 255, 255, 0.88)", margin: "0.5rem 0 0", fontSize: "1rem", lineHeight: "1.7", maxWidth: "800px" }}>
+                نقدم لك باقة مختارة من العقارات المتميزة المطابقة لطلبك. يمكنك تصفح التفاصيل الكاملة بالأسفل، والتواصل المباشر مع الوكيل المعتمد في أي وقت.
               </p>
             </div>
 
+            {/* Properties Grid */}
             <div className="properties-grid">
-              {properties.map((property) => (
-                <article key={property.id} className="property-card unit-card shared-property-card" style={{ display: "flex", flexDirection: "column", minHeight: "340px" }}>
+              {properties.map((property, index) => (
+                <article
+                  key={property.id}
+                  className="property-card unit-card shared-property-card"
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    minHeight: "350px",
+                    animationDelay: `${index * 0.05}s` // Dynamic Staggered delay!
+                  }}
+                >
                   {/* Badges */}
                   <div className="card-topline">
                     <div className="card-badges">
@@ -304,7 +343,8 @@ export default function SharePage({ params }: SharePageProps) {
           padding: "1.5rem 2rem",
           textAlign: "center",
           borderTop: "1px solid rgba(255, 255, 255, 0.1)",
-          fontSize: "0.9rem"
+          fontSize: "0.9rem",
+          marginTop: "3rem"
         }}
       >
         <p style={{ margin: 0 }}>&copy; {new Date().getFullYear()} الكيان للتسويق العقاري. جميع الحقوق محفوظة.</p>

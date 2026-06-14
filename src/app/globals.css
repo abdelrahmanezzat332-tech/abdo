@@ -1649,3 +1649,41 @@ label span {
   }
 }
 
+/* ── Admin Shares Table Styles ───────────────────────── */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: right;
+}
+
+.admin-table th {
+  background: var(--surface-soft);
+  color: var(--navy);
+  font-weight: 900;
+  padding: 0.95rem 1rem;
+  border-bottom: 2px solid var(--border);
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+.admin-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.admin-table tr {
+  transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-table tr:hover {
+  background-color: rgba(7, 27, 52, 0.03);
+}
+
+/* ── Hero Banner Animation ───────────────────────────── */
+.shared-hero-banner {
+  animation: pageEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+

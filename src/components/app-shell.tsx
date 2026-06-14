@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Share2,
   ShieldCheck,
   UserRound,
   Users,
@@ -30,6 +31,7 @@ const navItems = [
   { href: "/customers/archive",    label: "أرشيف العملاء",  icon: Archive },
   { href: "/admin",                label: "لوحة الأدمن",    icon: LayoutDashboard, admin: true },
   { href: "/admin/employees",      label: "الموظفون",       icon: Users,           admin: true },
+  { href: "/admin/shares",         label: "روابط المشاركة",  icon: Share2,          admin: true },
   { href: "/admin/permissions",    label: "الصلاحيات",      icon: ShieldCheck,     admin: true },
   { href: "/admin/backup",         label: "نسخ احتياطي",    icon: DatabaseBackup,  admin: true }
 ];
