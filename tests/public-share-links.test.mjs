@@ -9,7 +9,10 @@ test("public share links are executable by anonymous visitors and only expose av
   assert.match(migration, /security definer/);
   assert.match(migration, /grant execute on function public\.get_shared_properties\(uuid\) to anon, authenticated/);
   assert.match(migration, /grant select on public\.shared_links to anon, authenticated/);
-  assert.match(migration, /p\.status = 'available'::public\.property_status/);
+  assert.match(migration, /p\.property_code::text/);
+  assert.match(migration, /p\.property_type::text/);
+  assert.match(migration, /p\.operation::public\.operation_type/);
+  assert.match(migration, /p\.status::text = 'available'/);
   assert.match(migration, /v_dynamic_type = 'all'/);
   assert.match(migration, /v_dynamic_type = 'main' and not p\.is_partial/);
   assert.match(migration, /v_dynamic_type = 'partial' and p\.is_partial/);

@@ -82,27 +82,29 @@ begin
     return;
   end if;
 
+  v_visible_fields := coalesce(v_visible_fields, array[]::text[]);
+
   -- Return properties based on static list or dynamic configuration
   return query
   select
     p.id,
-    case when 'property_code' = any(v_visible_fields) then p.property_code else null end,
-    p.operation, -- always visible to show rent vs sell
-    case when 'city' = any(v_visible_fields) then p.city else null end,
-    case when 'property_type' = any(v_visible_fields) then p.property_type else null end,
-    case when 'employee_name' = any(v_visible_fields) then p.employee_name else null end,
-    case when 'mobile' = any(v_visible_fields) then p.mobile else null end,
-    case when 'description' = any(v_visible_fields) then p.description else null end,
-    case when 'price' = any(v_visible_fields) then p.price else null end,
-    case when 'status' = any(v_visible_fields) then p.status else null end,
+    case when 'property_code' = any(v_visible_fields) then p.property_code::text else null::text end,
+    p.operation::public.operation_type, -- always visible to show rent vs sell
+    case when 'city' = any(v_visible_fields) then p.city::text else null::text end,
+    case when 'property_type' = any(v_visible_fields) then p.property_type::text else null::text end,
+    case when 'employee_name' = any(v_visible_fields) then p.employee_name::text else null::text end,
+    case when 'mobile' = any(v_visible_fields) then p.mobile::text else null::text end,
+    case when 'description' = any(v_visible_fields) then p.description::text else null::text end,
+    case when 'price' = any(v_visible_fields) then p.price::text else null::text end,
+    case when 'status' = any(v_visible_fields) then p.status::public.property_status else null::public.property_status end,
     p.is_partial,
-    case when 'availability_type' = any(v_visible_fields) then p.availability_type else null end,
-    case when 'availability_type' = any(v_visible_fields) then p.availability_other else '' end,
+    case when 'availability_type' = any(v_visible_fields) then p.availability_type::text else null::text end,
+    case when 'availability_type' = any(v_visible_fields) then p.availability_other::text else ''::text end,
     p.created_at,
     v_visible_fields
   from public.properties p
   where p.archived_at is null
-    and p.status = 'available'::public.property_status
+    and p.status::text = 'available'
     and (
       (not coalesce(v_is_dynamic, false) and p.id = any(v_property_ids))
       or
