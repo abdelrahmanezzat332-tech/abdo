@@ -1,20 +1,20 @@
 :root {
-  --navy: #071b34;
-  --navy-2: #0d2c52;
-  --gold: #c79b36;
-  --gold-2: #e5bd62;
-  --bg: #f5f7fb;
+  --navy: #06162a;
+  --navy-2: #0c2443;
+  --gold: #d4af37;
+  --gold-2: #f4d068;
+  --bg: #f3f6fa;
   --surface: #ffffff;
-  --surface-soft: #f0f3f8;
-  --text: #142033;
-  --muted: #68758a;
-  --border: #dfe5ee;
-  --danger: #d84b4b;
-  --success: #1d9b6c;
-  --shadow: 0 18px 55px rgba(7, 27, 52, 0.12);
-  --card-padding: 1.1rem;
-  --card-gap: 0.9rem;
-  --card-radius: 10px;
+  --surface-soft: #ebf0f6;
+  --text: #111e30;
+  --muted: #5c6c84;
+  --border: #d0dae8;
+  --danger: #e53e3e;
+  --success: #10b981;
+  --shadow: 0 12px 40px rgba(7, 27, 52, 0.07);
+  --card-padding: 1.15rem;
+  --card-gap: 0.95rem;
+  --card-radius: 12px;
 }
 
 * {
@@ -531,27 +531,89 @@ label span {
   position: relative;
 }
 
-.choice-card svg {
-  color: var(--gold);
+/* ── Choice Card with Background Image ── */
+.choice-card-with-bg {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 250px !important;
+  padding: 0 !important;
+  border: 1px solid var(--border);
 }
 
-.choice-card span {
-  color: var(--navy);
-  font-size: 2rem;
-  font-weight: 900;
+.choice-card-image-wrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
 }
 
-.choice-card small {
-  color: var(--muted);
-  font-size: 1rem;
+.choice-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.choice-card:hover .choice-card-img {
+  transform: scale(1.08);
+}
+
+.choice-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(6, 22, 42, 0.15) 20%, rgba(6, 22, 42, 0.85) 90%);
+  transition: background 0.3s ease;
+}
+
+.choice-card:hover .choice-card-overlay {
+  background: linear-gradient(to bottom, rgba(6, 22, 42, 0.08) 15%, rgba(6, 22, 42, 0.92) 95%);
+}
+
+.choice-card-content {
+  position: relative;
+  z-index: 2;
+  padding: 1.5rem;
+  color: #ffffff !important;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 100%;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.choice-card-content span {
+  color: #ffffff !important;
+  font-size: 1.75rem !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
+}
+
+.choice-card-content small {
+  color: rgba(255, 255, 255, 0.88) !important;
+  font-size: 0.92rem !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.choice-icon {
+  color: var(--gold-2) !important;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+  margin-bottom: 0.25rem;
+  transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.choice-card:hover .choice-icon {
+  transform: translateY(-4px) scale(1.05);
 }
 
 .gold-choice {
-  background: linear-gradient(135deg, rgba(199, 155, 54, 0.18), #fff 52%);
+  border-color: rgba(212, 175, 55, 0.3) !important;
 }
 
 .blue-choice {
-  background: linear-gradient(135deg, rgba(13, 44, 82, 0.13), #fff 52%);
+  border-color: rgba(12, 36, 67, 0.3) !important;
 }
 
 .system-note {
@@ -559,11 +621,11 @@ label span {
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  border: 1px dashed rgba(199, 155, 54, 0.5);
+  border: 1px dashed rgba(212, 175, 55, 0.5);
   border-radius: 8px;
   padding: 1rem;
   color: var(--muted);
-  background: rgba(199, 155, 54, 0.08);
+  background: rgba(212, 175, 55, 0.06);
 }
 
 .system-note p {
@@ -587,8 +649,74 @@ label span {
   font-weight: 900;
 }
 
-.city-card svg {
-  color: var(--gold);
+/* ── City Card with Background Image ── */
+.city-card-with-bg {
+  position: relative;
+  overflow: hidden;
+  padding: 0 !important;
+  min-height: 180px !important;
+  display: block !important;
+  border: 1px solid var(--border);
+}
+
+.city-card-image-wrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.city-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.city-card:hover .city-card-img {
+  transform: scale(1.08);
+}
+
+.city-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(6, 22, 42, 0.15) 10%, rgba(6, 22, 42, 0.75) 90%);
+  transition: background 0.3s ease;
+}
+
+.city-card:hover .city-card-overlay {
+  background: linear-gradient(to bottom, rgba(6, 22, 42, 0.1) 5%, rgba(6, 22, 42, 0.82) 95%);
+}
+
+.city-card-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  color: #ffffff !important;
+}
+
+.city-card-content span {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #ffffff !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.city-icon {
+  color: var(--gold-2) !important;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.city-card:hover .city-icon {
+  transform: translateY(-5px) scale(1.1);
 }
 
 .backup-grid {

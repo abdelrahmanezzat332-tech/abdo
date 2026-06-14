@@ -7,6 +7,13 @@ import { RequireAuth } from "@/components/require-auth";
 import { cities } from "@/lib/constants";
 import { operationLabel } from "@/lib/format";
 
+const cityImages: Record<string, string> = {
+  "بدر": "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=600&q=80",
+  "الشروق": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80",
+  "مدينتي": "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=600&q=80",
+  "العبور": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80"
+};
+
 export default async function CitiesPage({
   searchParams
 }: {
@@ -26,9 +33,23 @@ export default async function CitiesPage({
 
         <section className="city-grid">
           {cities.map((city) => (
-            <Link className="city-card" key={city} href={`/unit-category?operation=${operation}&city=${encodeURIComponent(city)}`}>
-              <MapPinned size={28} />
-              <span>{city}</span>
+            <Link
+              className="city-card city-card-with-bg"
+              key={city}
+              href={`/unit-category?operation=${operation}&city=${encodeURIComponent(city)}`}
+            >
+              <div className="city-card-image-wrapper">
+                <img
+                  src={cityImages[city] || cityImages["بدر"]}
+                  alt={city}
+                  className="city-card-img"
+                />
+                <div className="city-card-overlay" />
+              </div>
+              <div className="city-card-content">
+                <MapPinned size={22} className="city-icon" />
+                <span>{city}</span>
+              </div>
             </Link>
           ))}
         </section>

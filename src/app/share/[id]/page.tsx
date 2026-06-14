@@ -212,20 +212,6 @@ export default function SharePage({ params }: SharePageProps) {
                     animationDelay: `${index * 0.08}s` // Dynamic Staggered delay!
                   }}
                 >
-                  {/* ── Card Cover Image ── */}
-                  <div className="property-card-cover">
-                    <img
-                      src={getPropertyImageUrl(property.property_type)}
-                      alt={property.property_type}
-                      className="property-cover-img"
-                    />
-                    <div className="property-cover-overlay" />
-                    {visibleFields.includes("price") && property.price ? (
-                      <span className="property-cover-price">
-                        {property.price}
-                      </span>
-                    ) : null}
-                  </div>
                   {/* Badges */}
                   <div className="card-topline">
                     <div className="card-badges">

@@ -62,21 +62,6 @@ export function PropertyCard({
             <span>مشاركة الوحدة</span>
           </label>
         ) : null}
-
-        {/* ── Card Cover Image ── */}
-        <div className="property-card-cover">
-          <img
-            src={getPropertyImageUrl(property.property_type)}
-            alt={property.property_type}
-            className="property-cover-img"
-          />
-          <div className="property-cover-overlay" />
-          {property.price ? (
-            <span className="property-cover-price">
-              {property.price}
-            </span>
-          ) : null}
-        </div>
         {/* ── Badges ── */}
         <div className="card-topline">
           <div className="card-badges">

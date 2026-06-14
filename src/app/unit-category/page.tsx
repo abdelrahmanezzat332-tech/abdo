@@ -27,15 +27,35 @@ export default async function UnitCategoryPage({
         />
 
         <section className="choice-grid">
-          <Link className="choice-card gold-choice" href={`/properties?operation=${operation}&city=${cityQuery}`}>
-            <Building2 size={44} />
-            <span>وحدات رئيسية</span>
-            <small>عرض وإدارة الوحدات الرئيسية في المدينة المختارة</small>
+          <Link className="choice-card gold-choice choice-card-with-bg" href={`/properties?operation=${operation}&city=${cityQuery}`}>
+            <div className="choice-card-image-wrapper">
+              <img
+                src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80"
+                alt="وحدات رئيسية"
+                className="choice-card-img"
+              />
+              <div className="choice-card-overlay" />
+            </div>
+            <div className="choice-card-content">
+              <Building2 size={38} className="choice-icon" />
+              <span>وحدات رئيسية</span>
+              <small>عرض وإدارة الوحدات الرئيسية في المدينة المختارة</small>
+            </div>
           </Link>
-          <Link className="choice-card blue-choice" href={`/partial-units?operation=${operation}&city=${cityQuery}`}>
-            <Layers3 size={44} />
-            <span>وحدات جزئية</span>
-            <small>عرض وإدارة الغرف والأسرة والأنواع الجزئية</small>
+          <Link className="choice-card blue-choice choice-card-with-bg" href={`/partial-units?operation=${operation}&city=${cityQuery}`}>
+            <div className="choice-card-image-wrapper">
+              <img
+                src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=600&q=80"
+                alt="وحدات جزئية"
+                className="choice-card-img"
+              />
+              <div className="choice-card-overlay" />
+            </div>
+            <div className="choice-card-content">
+              <Layers3 size={38} className="choice-icon" />
+              <span>وحدات جزئية</span>
+              <small>عرض وإدارة الغرف والأسرة والأنواع الجزئية</small>
+            </div>
           </Link>
         </section>
       </AppShell>
