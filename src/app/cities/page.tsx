@@ -1,4 +1,5 @@
 import { MapPinned } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { AppShell } from "@/components/app-shell";
@@ -39,10 +40,12 @@ export default async function CitiesPage({
               href={`/unit-category?operation=${operation}&city=${encodeURIComponent(city)}`}
             >
               <div className="city-card-image-wrapper">
-                <img
+                <Image
                   src={cityImages[city] || cityImages["بدر"]}
                   alt={city}
                   className="city-card-img"
+                  fill
+                  sizes="(max-width: 700px) 100vw, (max-width: 1180px) 50vw, 25vw"
                 />
                 <div className="city-card-overlay" />
               </div>

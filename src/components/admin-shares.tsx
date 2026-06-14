@@ -8,6 +8,18 @@ import { useToast } from "@/context/toast-context";
 import { getSupabase } from "@/lib/supabase";
 import { formatDate } from "@/lib/format";
 
+type DynamicShareType = "main" | "partial" | "all";
+
+type SharedLink = {
+  id: string;
+  name: string | null;
+  property_ids: string[] | null;
+  visible_fields: string[] | null;
+  is_dynamic: boolean | null;
+  dynamic_type: DynamicShareType | null;
+  created_at: string;
+};
+
 const FIELDS = [
   { key: "property_code", label: "كود الوحدة" },
   { key: "city", label: "المدينة" },
@@ -20,16 +32,20 @@ const FIELDS = [
   { key: "availability_type", label: "المتاح (للوحدات الجزئية)" }
 ];
 
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
 export function AdminShares() {
   const { user } = useAuth();
   const { showToast } = useToast();
-  const [links, setLinks] = useState<any[]>([]);
+  const [links, setLinks] = useState<SharedLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
 
   // Form states
   const [name, setName] = useState("");
-  const [dynamicType, setDynamicType] = useState<"main" | "partial" | "all">("main");
+  const [dynamicType, setDynamicType] = useState<DynamicShareType>("main");
   const [selectedFields, setSelectedFields] = useState<string[]>([
     "property_code",
     "city",
@@ -54,15 +70,18 @@ export function AdminShares() {
 
       if (error) throw error;
       setLinks(data || []);
-    } catch (err: any) {
-      showToast(err.message || "فشل تحميل روابط المشاركة", "error");
+    } catch (err: unknown) {
+      showToast(getErrorMessage(err, "فشل تحميل روابط المشاركة"), "error");
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    loadLinks();
+    const timer = window.setTimeout(() => {
+      void loadLinks();
+    }, 0);
+    return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -113,8 +132,8 @@ export function AdminShares() {
         "status",
         "availability_type"
       ]);
-    } catch (err: any) {
-      showToast(err.message || "حدث خطأ أثناء إنشاء الرابط", "error");
+    } catch (err: unknown) {
+      showToast(getErrorMessage(err, "حدث خطأ أثناء إنشاء الرابط"), "error");
     } finally {
       setCreating(false);
     }
@@ -133,8 +152,8 @@ export function AdminShares() {
 
       showToast("تم حذف رابط المشاركة بنجاح", "success");
       setLinks((prev) => prev.filter((link) => link.id !== id));
-    } catch (err: any) {
-      showToast(err.message || "فشل حذف الرابط", "error");
+    } catch (err: unknown) {
+      showToast(getErrorMessage(err, "فشل حذف الرابط"), "error");
     }
   }
 
@@ -150,7 +169,7 @@ export function AdminShares() {
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 2000);
       showToast("تم نسخ رابط المشاركة إلى الحافظة", "success");
-    } catch (err) {
+    } catch {
       showToast("فشل نسخ الرابط", "error");
     }
   }
@@ -162,7 +181,7 @@ export function AdminShares() {
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   }
 
-  function getLinkTypeName(link: any) {
+  function getLinkTypeName(link: SharedLink) {
     if (!link.is_dynamic) {
       const count = link.property_ids?.length || 0;
       return `ثابت (${count} وحدات محددة)`;
@@ -175,7 +194,7 @@ export function AdminShares() {
   return (
     <div className="admin-grid">
       {/* Creation Panel */}
-      <section className="panel" style={{ padding: "1.5rem" }}>
+      <section className="panel admin-share-panel">
         <h2 style={{ color: "var(--navy)", fontSize: "1.25rem", margin: "0 0 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <Plus size={20} style={{ color: "var(--gold)" }} />
           إنشاء رابط مشاركة عام جديد
@@ -197,7 +216,7 @@ export function AdminShares() {
             <span>نوع التصفية الديناميكية</span>
             <select
               value={dynamicType}
-              onChange={(e) => setDynamicType(e.target.value as any)}
+              onChange={(e) => setDynamicType(e.target.value as DynamicShareType)}
               disabled={creating}
             >
               <option value="main">الوحدات الرئيسية فقط (الفيلات، الشقق، إلخ)</option>
@@ -210,51 +229,21 @@ export function AdminShares() {
             <span style={{ fontSize: "0.95rem", fontWeight: "bold", display: "block", marginBottom: "0.5rem", color: "var(--navy)" }}>
               جدول الصلاحيات (الحقول المعروضة للعميل):
             </span>
-            <div className="fields-selection-grid" style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))",
-              gap: "0.5rem",
-              marginTop: "0.5rem"
-            }}>
+            <div className="fields-selection-grid admin-share-fields-grid">
               {FIELDS.map((field) => {
                 const isSelected = selectedFields.includes(field.key);
                 return (
                   <label
                     key={field.key}
-                    className="field-checkbox-label"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.45rem",
-                      padding: "0.55rem 0.75rem",
-                      border: isSelected ? "1px solid var(--gold)" : "1px solid var(--border)",
-                      borderRadius: "8px",
-                      background: isSelected ? "rgba(199, 155, 54, 0.06)" : "var(--surface)",
-                      cursor: "pointer",
-                      transition: "all 180ms ease",
-                      userSelect: "none"
-                    }}
+                    className={`field-checkbox-label ${isSelected ? "is-selected" : ""}`}
                   >
                     <input
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => toggleField(field.key)}
                       disabled={creating}
-                      style={{
-                        width: "16px",
-                        height: "16px",
-                        accentColor: "var(--gold)",
-                        margin: 0,
-                        cursor: "pointer"
-                      }}
                     />
-                    <span style={{
-                      fontSize: "0.82rem",
-                      fontWeight: isSelected ? "700" : "500",
-                      color: isSelected ? "var(--navy)" : "var(--text)"
-                    }}>
-                      {field.label}
-                    </span>
+                    <span>{field.label}</span>
                   </label>
                 );
               })}
@@ -269,7 +258,7 @@ export function AdminShares() {
       </section>
 
       {/* List Panel */}
-      <section className="panel" style={{ padding: "1.5rem" }}>
+      <section className="panel admin-share-panel">
         <div className="section-title" style={{ margin: "0 0 1.25rem" }}>
           <h2 style={{ color: "var(--navy)", fontSize: "1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <Share2 size={20} style={{ color: "var(--gold)" }} />
@@ -284,8 +273,8 @@ export function AdminShares() {
             <p>جاري تحميل روابط المشاركة...</p>
           </div>
         ) : links.length ? (
-          <div style={{ overflowX: "auto", borderRadius: "8px", border: "1px solid var(--border)" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "right" }} className="admin-table">
+          <div className="admin-table-wrap">
+            <table className="admin-table admin-shares-table">
               <thead>
                 <tr style={{ background: "var(--surface-soft)", borderBottom: "1px solid var(--border)" }}>
                   <th style={{ padding: "0.85rem 1rem", fontSize: "0.9rem", color: "var(--navy)" }}>اسم الرابط</th>
@@ -298,36 +287,25 @@ export function AdminShares() {
               <tbody>
                 {links.map((link) => (
                   <tr key={link.id} style={{ borderBottom: "1px solid var(--border)", transition: "background 150ms ease" }}>
-                    <td style={{ padding: "0.9rem 1rem", fontWeight: "bold", color: "var(--navy)" }}>
+                    <td data-label="اسم الرابط" style={{ padding: "0.9rem 1rem", fontWeight: "bold", color: "var(--navy)" }}>
                       {link.name || "رابط مشاركة يدوي"}
                       <div style={{ fontSize: "0.75rem", fontWeight: "normal", color: "var(--muted)", marginTop: "0.15rem" }}>
                         أنشئ في: {formatDate(link.created_at)}
                       </div>
                     </td>
-                    <td style={{ padding: "0.9rem 1rem" }}>
+                    <td data-label="النوع" style={{ padding: "0.9rem 1rem" }}>
                       <span className="muted-pill" style={{ display: "inline-block" }}>{getLinkTypeName(link)}</span>
                     </td>
-                    <td style={{ padding: "0.9rem 1rem", fontSize: "0.82rem", color: "var(--muted)" }}>
+                    <td data-label="صلاحيات البيانات" style={{ padding: "0.9rem 1rem", fontSize: "0.82rem", color: "var(--muted)" }}>
                       {link.visible_fields?.length || 0} حقول مرئية
                     </td>
-                    <td style={{ padding: "0.9rem 1rem" }}>
-                      <div style={{ display: "flex", gap: "0.35rem", alignItems: "center" }}>
+                    <td data-label="الرابط العام" style={{ padding: "0.9rem 1rem" }}>
+                      <div className="share-link-cell">
                         <input
                           type="text"
                           readOnly
                           value={getShareUrl(link.id)}
                           onClick={(e) => (e.target as HTMLInputElement).select()}
-                          style={{
-                            width: "180px",
-                            padding: "0.38rem 0.55rem",
-                            fontSize: "0.8rem",
-                            fontFamily: "monospace",
-                            direction: "ltr",
-                            textAlign: "left",
-                            background: "var(--surface-soft)",
-                            border: "1px solid var(--border)",
-                            borderRadius: "6px"
-                          }}
                         />
                         <button
                           type="button"
@@ -347,8 +325,8 @@ export function AdminShares() {
                         </button>
                       </div>
                     </td>
-                    <td style={{ padding: "0.9rem 1rem", textAlign: "center" }}>
-                      <div style={{ display: "flex", gap: "0.35rem", justifyContent: "center" }}>
+                    <td data-label="الإجراءات" style={{ padding: "0.9rem 1rem", textAlign: "center" }}>
+                      <div className="share-actions-cell">
                         <button
                           className="soft-button compact"
                           onClick={() => shareToWhatsApp(link.id, link.name || "رابط مشاركة")}

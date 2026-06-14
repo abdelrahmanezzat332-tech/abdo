@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowLeftRight, BadgeDollarSign, Building } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { AppShell } from "@/components/app-shell";
@@ -20,10 +21,12 @@ export default function ChooseOperationPage() {
         <section className="choice-grid">
           <Link className="choice-card gold-choice choice-card-with-bg" href="/cities?operation=sell">
             <div className="choice-card-image-wrapper">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=600&q=80"
                 alt="بيع"
                 className="choice-card-img"
+                fill
+                sizes="(max-width: 700px) 100vw, 50vw"
               />
               <div className="choice-card-overlay" />
             </div>
@@ -35,10 +38,12 @@ export default function ChooseOperationPage() {
           </Link>
           <Link className="choice-card blue-choice choice-card-with-bg" href="/cities?operation=rent">
             <div className="choice-card-image-wrapper">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=600&q=80"
                 alt="إيجار"
                 className="choice-card-img"
+                fill
+                sizes="(max-width: 700px) 100vw, 50vw"
               />
               <div className="choice-card-overlay" />
             </div>

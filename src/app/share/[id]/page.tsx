@@ -15,25 +15,33 @@ import { use, useEffect, useState } from "react";
 
 import { formatDate, operationLabel } from "@/lib/format";
 import { getSupabase } from "@/lib/supabase";
-import { getPropertyImageUrl } from "@/lib/constants";
+import type { Property, PropertyStatus } from "@/lib/types";
 
 type SharePageProps = {
   params: Promise<{ id: string }>;
 };
 
-function statusLabel(status: string) {
+type SharedProperty = Property & {
+  visible_fields?: string[];
+};
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
+function statusLabel(status: PropertyStatus) {
   if (status === "sold") return "تم البيع";
   if (status === "rented") return "تم الإيجار";
   return "متوفرة";
 }
 
-function statusClass(status: string) {
+function statusClass(status: PropertyStatus) {
   if (status === "sold") return "status-sold";
   if (status === "rented") return "status-rented";
   return "status-available";
 }
 
-function getAvailabilityLabel(property: any) {
+function getAvailabilityLabel(property: SharedProperty) {
   if (property.availability_type === "other") {
     return property.availability_other;
   }
@@ -58,11 +66,11 @@ function getWhatsAppUrl(mobile: string, propertyCode: string | null) {
 
 export default function SharePage({ params }: SharePageProps) {
   const { id } = use(params);
-  const [properties, setProperties] = useState<any[]>([]);
+  const [properties, setProperties] = useState<SharedProperty[]>([]);
   const [visibleFields, setVisibleFields] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedDesc, setSelectedDesc] = useState<any | null>(null);
+  const [selectedDesc, setSelectedDesc] = useState<SharedProperty | null>(null);
 
   useEffect(() => {
     async function fetchShared() {
@@ -87,11 +95,12 @@ export default function SharePage({ params }: SharePageProps) {
             setError("لا توجد وحدات معروضة في هذا الرابط حالياً.");
           }
         } else {
-          setProperties(data);
-          setVisibleFields(data[0].visible_fields || []);
+          const sharedProperties = data as SharedProperty[];
+          setProperties(sharedProperties);
+          setVisibleFields(sharedProperties[0].visible_fields || []);
         }
-      } catch (err: any) {
-        setError(err.message || "حدث خطأ أثناء تحميل الوحدات المشتركة.");
+      } catch (err: unknown) {
+        setError(getErrorMessage(err, "حدث خطأ أثناء تحميل الوحدات المشتركة."));
       } finally {
         setLoading(false);
       }

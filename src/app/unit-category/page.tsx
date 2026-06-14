@@ -1,4 +1,5 @@
 import { Building2, Layers3 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { AppShell } from "@/components/app-shell";
@@ -29,10 +30,12 @@ export default async function UnitCategoryPage({
         <section className="choice-grid">
           <Link className="choice-card gold-choice choice-card-with-bg" href={`/properties?operation=${operation}&city=${cityQuery}`}>
             <div className="choice-card-image-wrapper">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80"
                 alt="وحدات رئيسية"
                 className="choice-card-img"
+                fill
+                sizes="(max-width: 700px) 100vw, 50vw"
               />
               <div className="choice-card-overlay" />
             </div>
@@ -44,10 +47,12 @@ export default async function UnitCategoryPage({
           </Link>
           <Link className="choice-card blue-choice choice-card-with-bg" href={`/partial-units?operation=${operation}&city=${cityQuery}`}>
             <div className="choice-card-image-wrapper">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=600&q=80"
                 alt="وحدات جزئية"
                 className="choice-card-img"
+                fill
+                sizes="(max-width: 700px) 100vw, 50vw"
               />
               <div className="choice-card-overlay" />
             </div>

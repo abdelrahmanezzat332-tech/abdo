@@ -26,7 +26,11 @@ const FIELDS = [
   { key: "availability_type", label: "المتاح (للوحدات الجزئية)" }
 ];
 
-export function ShareModal({ propertyIds, selectedProperties, onClose }: ShareModalProps) {
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
+export function ShareModal({ propertyIds, onClose }: ShareModalProps) {
   const { user } = useAuth();
   const { showToast } = useToast();
   const [selectedFields, setSelectedFields] = useState<string[]>([
@@ -76,8 +80,8 @@ export function ShareModal({ propertyIds, selectedProperties, onClose }: ShareMo
         setGeneratedUrl(url);
         showToast("تم إنشاء رابط المشاركة بنجاح", "success");
       }
-    } catch (err: any) {
-      showToast(err.message || "حدث خطأ أثناء إنشاء رابط المشاركة", "error");
+    } catch (err: unknown) {
+      showToast(getErrorMessage(err, "حدث خطأ أثناء إنشاء رابط المشاركة"), "error");
     } finally {
       setLoading(false);
     }
@@ -90,7 +94,7 @@ export function ShareModal({ propertyIds, selectedProperties, onClose }: ShareMo
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       showToast("تم نسخ الرابط إلى الحافظة", "success");
-    } catch (err) {
+    } catch {
       showToast("فشل نسخ الرابط", "error");
     }
   }

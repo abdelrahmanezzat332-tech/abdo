@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { formatDate, operationLabel } from "@/lib/format";
-import { partialAvailabilityTypes, getPropertyImageUrl } from "@/lib/constants";
+import { partialAvailabilityTypes } from "@/lib/constants";
 import { canManageProperty, hasPermission } from "@/lib/permissions";
 import type { Property, UserProfile } from "@/lib/types";
 
