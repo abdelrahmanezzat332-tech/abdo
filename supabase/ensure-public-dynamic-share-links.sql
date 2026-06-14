@@ -1,50 +1,32 @@
--- ── Create shared_links Table (if not exists) ─────────────────────────────────
-create table if not exists public.shared_links (
-  id uuid primary key default gen_random_uuid(),
-  property_ids uuid[],
-  visible_fields text[] not null default array[]::text[],
-  created_by uuid references auth.users(id) on delete cascade,
-  created_at timestamptz not null default now(),
-  name text,
-  is_dynamic boolean not null default false,
-  dynamic_type text check (dynamic_type in ('main', 'partial', 'all'))
-);
+-- Run this in Supabase SQL Editor to make /share/:id links public on Vercel.
+-- It keeps admin-created links private to manage, but readable/executable by anonymous visitors.
 
--- Alter table if it already exists to add columns and drop constraints safely
 alter table public.shared_links add column if not exists name text;
 alter table public.shared_links add column if not exists is_dynamic boolean not null default false;
 alter table public.shared_links add column if not exists dynamic_type text check (dynamic_type in ('main', 'partial', 'all'));
 alter table public.shared_links alter column property_ids drop not null;
 
--- Enable Row Level Security (RLS)
 alter table public.shared_links enable row level security;
 
--- Policies for shared_links
 drop policy if exists "Allow public read access to shared_links" on public.shared_links;
 create policy "Allow public read access to shared_links"
 on public.shared_links for select to public
 using (true);
-
-grant select on public.shared_links to anon, authenticated;
 
 drop policy if exists "Allow authenticated users to create shared_links" on public.shared_links;
 create policy "Allow authenticated users to create shared_links"
 on public.shared_links for insert to authenticated
 with check (auth.uid() = created_by);
 
-grant insert on public.shared_links to authenticated;
-
 drop policy if exists "Allow owners or admins to delete shared_links" on public.shared_links;
 create policy "Allow owners or admins to delete shared_links"
 on public.shared_links for delete to authenticated
 using (auth.uid() = created_by or public.is_admin());
 
-grant delete on public.shared_links to authenticated;
+grant usage on schema public to anon, authenticated;
+grant select on public.shared_links to anon, authenticated;
+grant insert, delete on public.shared_links to authenticated;
 
--- ── get_shared_properties RPC Function ────────────────────────────────────────
--- Runs with SECURITY DEFINER to bypass properties table RLS for anonymous requests.
--- Selectively returns fields based on visible_fields configuration in shared_links.
--- Handles both static list of properties and dynamic categories (main/partial/all).
 drop function if exists public.get_shared_properties(uuid);
 create or replace function public.get_shared_properties(p_share_id uuid)
 returns table (
@@ -64,7 +46,9 @@ returns table (
   created_at timestamptz,
   visible_fields text[]
 )
-language plpgsql security definer set search_path = public
+language plpgsql
+security definer
+set search_path = public
 as $$
 declare
   v_property_ids uuid[];
@@ -72,7 +56,6 @@ declare
   v_is_dynamic boolean;
   v_dynamic_type text;
 begin
-  -- Retrieve the shared link configuration
   select property_ids, visible_fields, is_dynamic, dynamic_type
   into v_property_ids, v_visible_fields, v_is_dynamic, v_dynamic_type
   from public.shared_links
@@ -82,12 +65,11 @@ begin
     return;
   end if;
 
-  -- Return properties based on static list or dynamic configuration
   return query
   select
     p.id,
     case when 'property_code' = any(v_visible_fields) then p.property_code else null end,
-    p.operation, -- always visible to show rent vs sell
+    p.operation,
     case when 'city' = any(v_visible_fields) then p.city else null end,
     case when 'property_type' = any(v_visible_fields) then p.property_type else null end,
     case when 'employee_name' = any(v_visible_fields) then p.employee_name else null end,
@@ -116,5 +98,7 @@ begin
 end;
 $$;
 
--- Grant execution permission to anonymous and authenticated users
+revoke all on function public.get_shared_properties(uuid) from public;
 grant execute on function public.get_shared_properties(uuid) to anon, authenticated;
+
+notify pgrst, 'reload schema';
