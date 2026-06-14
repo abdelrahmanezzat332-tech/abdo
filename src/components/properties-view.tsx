@@ -1,12 +1,13 @@
 "use client";
 
-import { Filter, MessageCircle, Plus, RotateCcw, Search, X } from "lucide-react";
+import { Filter, Link2, MessageCircle, Plus, RotateCcw, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
 import { PropertyCard } from "@/components/property-card";
+import { ShareModal } from "@/components/share-modal";
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/context/toast-context";
 import { cities, operations, propertyStatuses, propertyTypes } from "@/lib/constants";
@@ -39,6 +40,7 @@ export function PropertiesView({
   const [type, setType] = useState("");
   const [operation, setOperation] = useState(initialOperation);
   const [selectedPropertyIds, setSelectedPropertyIds] = useState<string[]>([]);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const canViewMobile = hasPermission(profile, "can_view_mobile");
   const cityOptions = useMemo(
     () => Array.from(new Set<string>([...cities, ...properties.map((property) => property.city).filter(Boolean)])),
@@ -322,6 +324,10 @@ export function PropertiesView({
                 <MessageCircle size={18} />
                 مشاركة واتساب
               </button>
+              <button className="soft-button compact" type="button" onClick={() => setShareModalOpen(true)}>
+                <Link2 size={18} />
+                إنشاء رابط مشاركة
+              </button>
               <button className="soft-button compact" type="button" onClick={clearSelectedProperties}>
                 <X size={18} />
                 إلغاء التحديد
@@ -360,6 +366,14 @@ export function PropertiesView({
         </div>
       ) : (
         <EmptyState title="لا توجد وحدات مطابقة" description="جرّب تغيير كلمات البحث أو الفلاتر الحالية." />
+      )}
+
+      {shareModalOpen && (
+        <ShareModal
+          propertyIds={selectedPropertyIds}
+          selectedProperties={selectedProperties}
+          onClose={() => setShareModalOpen(false)}
+        />
       )}
     </>
   );

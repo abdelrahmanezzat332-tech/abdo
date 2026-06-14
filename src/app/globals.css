@@ -31,10 +31,11 @@ body {
   margin: 0;
   color: var(--text);
   background:
-    linear-gradient(140deg, rgba(7, 27, 52, 0.06), transparent 34%),
-    linear-gradient(320deg, rgba(199, 155, 54, 0.12), transparent 28%),
-    var(--bg);
+    radial-gradient(at 0% 0%, rgba(7, 27, 52, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(199, 155, 54, 0.15) 0px, transparent 50%),
+    linear-gradient(180deg, var(--bg) 0%, #edf1f7 100%);
   font-family: "Cairo", "Segoe UI", Tahoma, Arial, sans-serif;
+  overflow-x: hidden;
 }
 
 a {
@@ -282,12 +283,18 @@ label span {
 
 .primary-button:hover,
 .soft-button:hover,
-.icon-button:hover,
+.icon-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(7, 27, 52, 0.16);
+}
+
 .choice-card:hover,
 .city-card:hover,
 .property-card:hover,
 .employee-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-5px) scale(1.01);
+  box-shadow: 0 20px 40px rgba(7, 27, 52, 0.12);
+  border-color: rgba(199, 155, 54, 0.35);
 }
 
 .primary-button:disabled,
@@ -366,17 +373,45 @@ label span {
   border-radius: 8px;
   padding: 0.88rem;
   color: rgba(255, 255, 255, 0.76);
-  transition: background 180ms ease, color 180ms ease;
+  transition: background 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.25s cubic-bezier(0.16, 1, 0.3, 1), padding-inline-start 0.25s ease;
+  position: relative;
 }
 
-.nav-link:hover,
+.nav-link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.15);
+  padding-inline-start: 1.15rem;
+}
+
 .nav-link.active {
   color: #fff;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
 }
 
-.nav-link.active {
-  box-shadow: inset 3px 0 0 var(--gold);
+.nav-link.active::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 15%;
+  bottom: 15%;
+  width: 4px;
+  background: var(--gold);
+  border-radius: 0 4px 4px 0;
+  animation: activeBarIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes activeBarIn {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+.nav-link svg {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.25s ease;
+}
+
+.nav-link:hover svg {
+  transform: scale(1.15) rotate(-3deg);
+  color: var(--gold-2);
 }
 
 .nav-chevron {
@@ -476,10 +511,13 @@ label span {
 .employee-card,
 .stat-card,
 .empty-state {
-  border: 1px solid var(--border);
+  border: 1px solid rgba(223, 229, 238, 0.6);
   border-radius: var(--card-radius);
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 12px 35px rgba(7, 27, 52, 0.08);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px rgba(7, 27, 52, 0.05);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
 }
 
 .choice-card {
@@ -1333,3 +1371,281 @@ label span {
     gap: 0.7rem;
   }
 }
+
+/* ── Share Modal Styles ──────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 27, 52, 0.42);
+  backdrop-filter: blur(3px);
+  z-index: 100;
+}
+
+.modal-container {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 101;
+  direction: rtl;
+}
+
+.modal-panel {
+  width: min(500px, 95vw);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: toast-in 250ms ease both;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.75rem;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: var(--navy);
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+.modal-close {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--navy);
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.modal-close:hover {
+  background: var(--surface-soft);
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.fields-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0.5rem 0;
+}
+
+.field-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  cursor: pointer;
+  font-weight: 700;
+  user-select: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  background: #fff;
+  transition: background 150ms ease;
+}
+
+.field-checkbox-label:hover {
+  background: var(--surface-soft);
+}
+
+.field-checkbox-label input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--navy);
+  cursor: pointer;
+}
+
+.field-checkbox-label span {
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+.link-result-box {
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.link-input-wrapper {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.link-input-wrapper input {
+  flex-grow: 1;
+  font-family: monospace;
+  font-size: 0.92rem;
+  direction: ltr;
+  text-align: left;
+  background: #fff;
+  border: 1px solid var(--border);
+}
+
+.link-actions-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.link-actions-row button,
+.link-actions-row a {
+  flex: 1;
+  min-width: 100px;
+}
+
+/* ── Shared Page Responsive Adjustments ─────────────── */
+@media (max-width: 700px) {
+  .fields-selection-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Premium Animations & Transitions ───────────────── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 25px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes pageEntrance {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes modalZoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translate3d(0, 15px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+}
+
+@keyframes drawerSlideIn {
+  from {
+    transform: translate3d(-100%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes drawerSlideInMobile {
+  from {
+    transform: translate3d(0, 100%, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Page Entrance */
+.main-content {
+  animation: pageEntrance 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Card Entrances */
+.property-card,
+.customer-card,
+.employee-card,
+.choice-card,
+.city-card,
+.stat-card,
+.backup-panel {
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Staggered load delays for lists */
+.properties-grid > *:nth-child(1),
+.customers-grid > *:nth-child(1),
+.city-grid > *:nth-child(1),
+.choice-grid > *:nth-child(1),
+.stats-grid > *:nth-child(1),
+.backup-grid > *:nth-child(1) { animation-delay: 0.04s; }
+
+.properties-grid > *:nth-child(2),
+.customers-grid > *:nth-child(2),
+.city-grid > *:nth-child(2),
+.choice-grid > *:nth-child(2),
+.stats-grid > *:nth-child(2),
+.backup-grid > *:nth-child(2) { animation-delay: 0.08s; }
+
+.properties-grid > *:nth-child(3),
+.customers-grid > *:nth-child(3),
+.city-grid > *:nth-child(3),
+.stats-grid > *:nth-child(3) { animation-delay: 0.12s; }
+
+.properties-grid > *:nth-child(4),
+.customers-grid > *:nth-child(4),
+.city-grid > *:nth-child(4),
+.stats-grid > *:nth-child(4) { animation-delay: 0.16s; }
+
+.properties-grid > *:nth-child(n+5),
+.customers-grid > *:nth-child(n+5) { animation-delay: 0.2s; }
+
+/* Micro-interactions: Active button click scale */
+.primary-button, .soft-button, .icon-button {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, color 0.2s ease;
+}
+.primary-button:active, .soft-button:active, .icon-button:active {
+  transform: scale(0.96) translateY(0) !important;
+}
+
+/* Modal Spring Bounce Entrance */
+.modal-panel, .auth-card {
+  animation: modalZoomIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Slide in transitions for drawer */
+.description-drawer-panel {
+  animation: drawerSlideIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (max-width: 700px) {
+  .description-drawer-panel {
+    animation: drawerSlideInMobile 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
