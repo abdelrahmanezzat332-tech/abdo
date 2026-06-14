@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/context/toast-context";
+import { getShareUrl } from "@/lib/share-url";
 import { getSupabase } from "@/lib/supabase";
 import type { Property } from "@/lib/types";
 
@@ -75,8 +76,7 @@ export function ShareModal({ propertyIds, onClose }: ShareModalProps) {
       if (error) throw error;
 
       if (data) {
-        const origin = typeof window !== "undefined" ? window.location.origin : "";
-        const url = `${origin}/share/${data.id}`;
+        const url = getShareUrl(data.id);
         setGeneratedUrl(url);
         showToast("تم إنشاء رابط المشاركة بنجاح", "success");
       }

@@ -7,6 +7,7 @@ import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/context/toast-context";
 import { getSupabase } from "@/lib/supabase";
 import { formatDate } from "@/lib/format";
+import { getShareUrl } from "@/lib/share-url";
 
 type DynamicShareType = "main" | "partial" | "all";
 
@@ -155,11 +156,6 @@ export function AdminShares() {
     } catch (err: unknown) {
       showToast(getErrorMessage(err, "فشل حذف الرابط"), "error");
     }
-  }
-
-  function getShareUrl(id: string) {
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    return `${origin}/share/${id}`;
   }
 
   async function copyToClipboard(id: string) {
