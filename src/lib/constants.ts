@@ -46,3 +46,21 @@ export const permissionLabels = {
   can_view_customer_mobile: "رؤية رقم موبايل العملاء",
   can_view_all: "رؤية كل البيانات"
 } as const;
+
+export const propertyImages: Record<string, string> = {
+  "شقق": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80",
+  "فلل": "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=600&q=80",
+  "عمارات": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80",
+  "محلات": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=600&q=80",
+  "استوديو": "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=600&q=80",
+  "دوبلكس": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80",
+  "أراضي": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=600&q=80",
+  "إداري": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80",
+  "تجاري": "https://images.unsplash.com/photo-1478860121278-78ae43b26410?auto=format&fit=crop&w=600&q=80",
+  "أخرى": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=80"
+};
+
+export function getPropertyImageUrl(type: string): string {
+  return propertyImages[type] || propertyImages["أخرى"];
+}
+

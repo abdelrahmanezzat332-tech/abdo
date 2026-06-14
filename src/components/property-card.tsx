@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { formatDate, operationLabel } from "@/lib/format";
-import { partialAvailabilityTypes } from "@/lib/constants";
+import { partialAvailabilityTypes, getPropertyImageUrl } from "@/lib/constants";
 import { canManageProperty, hasPermission } from "@/lib/permissions";
 import type { Property, UserProfile } from "@/lib/types";
 
@@ -51,7 +51,7 @@ export function PropertyCard({
 
   return (
     <>
-      <article className="property-card unit-card">
+      <article className={`property-card unit-card ${selected ? "selected-card" : ""}`}>
         {onSelectChange ? (
           <label className="unit-share-checkbox">
             <input
@@ -62,6 +62,21 @@ export function PropertyCard({
             <span>مشاركة الوحدة</span>
           </label>
         ) : null}
+
+        {/* ── Card Cover Image ── */}
+        <div className="property-card-cover">
+          <img
+            src={getPropertyImageUrl(property.property_type)}
+            alt={property.property_type}
+            className="property-cover-img"
+          />
+          <div className="property-cover-overlay" />
+          {property.price ? (
+            <span className="property-cover-price">
+              {property.price}
+            </span>
+          ) : null}
+        </div>
         {/* ── Badges ── */}
         <div className="card-topline">
           <div className="card-badges">

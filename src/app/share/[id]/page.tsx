@@ -15,6 +15,7 @@ import { use, useEffect, useState } from "react";
 
 import { formatDate, operationLabel } from "@/lib/format";
 import { getSupabase } from "@/lib/supabase";
+import { getPropertyImageUrl } from "@/lib/constants";
 
 type SharePageProps = {
   params: Promise<{ id: string }>;
@@ -203,14 +204,28 @@ export default function SharePage({ params }: SharePageProps) {
               {properties.map((property, index) => (
                 <article
                   key={property.id}
-                  className="property-card unit-card shared-property-card"
+                  className="property-card unit-card shared-property-card animate-card-fade-in"
                   style={{
                     display: "flex",
                     flexDirection: "column",
                     minHeight: "350px",
-                    animationDelay: `${index * 0.05}s` // Dynamic Staggered delay!
+                    animationDelay: `${index * 0.08}s` // Dynamic Staggered delay!
                   }}
                 >
+                  {/* ── Card Cover Image ── */}
+                  <div className="property-card-cover">
+                    <img
+                      src={getPropertyImageUrl(property.property_type)}
+                      alt={property.property_type}
+                      className="property-cover-img"
+                    />
+                    <div className="property-cover-overlay" />
+                    {visibleFields.includes("price") && property.price ? (
+                      <span className="property-cover-price">
+                        {property.price}
+                      </span>
+                    ) : null}
+                  </div>
                   {/* Badges */}
                   <div className="card-topline">
                     <div className="card-badges">

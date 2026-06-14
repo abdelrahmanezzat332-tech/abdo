@@ -74,6 +74,7 @@ export function AdminDashboard() {
       <section className="admin-shortcuts">
         <Link href="/admin/employees">إدارة الموظفين</Link>
         <Link href="/admin/permissions">إدارة الصلاحيات</Link>
+        <Link href="/admin/shares">إدارة روابط المشاركة</Link>
         <Link href="/admin/backup">نسخ احتياطي للبيانات</Link>
         <Link href="/properties">إدارة الوحدات</Link>
       </section>

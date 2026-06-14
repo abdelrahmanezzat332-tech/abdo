@@ -207,21 +207,57 @@ export function AdminShares() {
           </label>
 
           <div>
-            <span style={{ fontSize: "0.9rem", fontWeight: "bold", display: "block", marginBottom: "0.5rem" }}>
+            <span style={{ fontSize: "0.95rem", fontWeight: "bold", display: "block", marginBottom: "0.5rem", color: "var(--navy)" }}>
               جدول الصلاحيات (الحقول المعروضة للعميل):
             </span>
-            <div className="fields-selection-grid" style={{ gridTemplateColumns: "1fr" }}>
-              {FIELDS.map((field) => (
-                <label key={field.key} className="field-checkbox-label" style={{ padding: "0.5rem 0.65rem", border: "1px solid var(--border)", borderRadius: "6px" }}>
-                  <input
-                    type="checkbox"
-                    checked={selectedFields.includes(field.key)}
-                    onChange={() => toggleField(field.key)}
-                    disabled={creating}
-                  />
-                  <span style={{ fontSize: "0.85rem" }}>{field.label}</span>
-                </label>
-              ))}
+            <div className="fields-selection-grid" style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))",
+              gap: "0.5rem",
+              marginTop: "0.5rem"
+            }}>
+              {FIELDS.map((field) => {
+                const isSelected = selectedFields.includes(field.key);
+                return (
+                  <label
+                    key={field.key}
+                    className="field-checkbox-label"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.45rem",
+                      padding: "0.55rem 0.75rem",
+                      border: isSelected ? "1px solid var(--gold)" : "1px solid var(--border)",
+                      borderRadius: "8px",
+                      background: isSelected ? "rgba(199, 155, 54, 0.06)" : "var(--surface)",
+                      cursor: "pointer",
+                      transition: "all 180ms ease",
+                      userSelect: "none"
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleField(field.key)}
+                      disabled={creating}
+                      style={{
+                        width: "16px",
+                        height: "16px",
+                        accentColor: "var(--gold)",
+                        margin: 0,
+                        cursor: "pointer"
+                      }}
+                    />
+                    <span style={{
+                      fontSize: "0.82rem",
+                      fontWeight: isSelected ? "700" : "500",
+                      color: isSelected ? "var(--navy)" : "var(--text)"
+                    }}>
+                      {field.label}
+                    </span>
+                  </label>
+                );
+              })}
             </div>
           </div>
 
