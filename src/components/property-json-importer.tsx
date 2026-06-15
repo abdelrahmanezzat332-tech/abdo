@@ -83,6 +83,14 @@ function getAvailabilityType(value: unknown, rowNumber: number): PartialAvailabi
   throw new Error(`Row ${rowNumber}: availability_type must be bed, room, or other.`);
 }
 
+function normalizeImportedMobile(rawMobile: string) {
+  const normalizedMobile = normalizePhone(rawMobile);
+  return {
+    value: normalizedMobile || rawMobile.trim(),
+    shouldLookupRelated: Boolean(normalizedMobile)
+  };
+}
+
 export function PropertyJsonImporter({
   mode = "full",
   onImported
@@ -113,21 +121,22 @@ export function PropertyJsonImporter({
     const city = getRequiredText(row, "city", rowNumber);
     const propertyType = getRequiredText(row, "property_type", rowNumber);
     const employeeName = getRequiredText(row, "employee_name", rowNumber);
-    const mobile = normalizePhone(getRequiredText(row, "mobile", rowNumber));
+    const rawMobile = getRequiredText(row, "mobile", rowNumber);
+    const mobile = normalizeImportedMobile(rawMobile);
     const description = getRequiredText(row, "description", rowNumber);
     const price = asText(row.price);
     const status = getStatus(row.status, rowNumber);
 
-    if (!mobile) throw new Error(`Row ${rowNumber}: mobile is invalid.`);
+    if (!mobile.value) throw new Error(`Row ${rowNumber}: mobile is invalid.`);
 
     const supabase = getSupabase();
-    const relatedProperty = await findRelatedMobile(mobile);
+    const relatedProperty = mobile.shouldLookupRelated ? await findRelatedMobile(mobile.value) : null;
     const commonPayload = {
       p_operation: operation,
       p_city: city,
       p_property_type: propertyType,
       p_employee_name: employeeName,
-      p_mobile: mobile,
+      p_mobile: mobile.value,
       p_description: description,
       p_price: price,
       p_status: status,

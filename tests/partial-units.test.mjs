@@ -64,6 +64,23 @@ test("main units page can import units from a local json file", () => {
   assert.match(propertiesPage, /href="\/properties\/new"/);
 });
 
+test("phone normalization accepts Arabic and Persian digits in imported json", () => {
+  const formatSource = readFileSync("src/lib/format.ts", "utf8");
+
+  assert.match(formatSource, /arabicIndicDigits/);
+  assert.match(formatSource, /persianDigits/);
+  assert.match(formatSource, /normalizeLocalizedDigits/);
+});
+
+test("json importer preserves non-numeric mobile placeholders without duplicate lookup", () => {
+  const importer = readFileSync("src/components/property-json-importer.tsx", "utf8");
+
+  assert.match(importer, /normalizeImportedMobile/);
+  assert.match(importer, /shouldLookupRelated/);
+  assert.match(importer, /rawMobile/);
+  assert.match(importer, /relatedProperty = mobile\.shouldLookupRelated/);
+});
+
 test("city selection opens a unit category choice before listing records", () => {
   const cityPage = readFileSync("src/app/cities/page.tsx", "utf8");
   const categoryPage = readFileSync("src/app/unit-category/page.tsx", "utf8");
