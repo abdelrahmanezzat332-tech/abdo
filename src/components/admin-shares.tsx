@@ -7,7 +7,7 @@ import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/context/toast-context";
 import { getSupabase } from "@/lib/supabase";
 import { formatDate } from "@/lib/format";
-import { getShareUrl } from "@/lib/share-url";
+import { getShareOriginWarning, getShareUrl } from "@/lib/share-url";
 
 type DynamicShareType = "main" | "partial" | "all";
 
@@ -59,6 +59,7 @@ export function AdminShares() {
   ]);
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const shareOriginWarning = getShareOriginWarning();
 
   async function loadLinks() {
     setLoading(true);
@@ -197,6 +198,12 @@ export function AdminShares() {
         </h2>
 
         <form onSubmit={handleCreateLink} style={{ display: "grid", gap: "1rem" }}>
+          {shareOriginWarning ? (
+            <div className="warning-note">
+              {shareOriginWarning}
+            </div>
+          ) : null}
+
           <label>
             <span>اسم الرابط (للاستخدام الداخلي)</span>
             <input

@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/context/toast-context";
-import { getShareUrl } from "@/lib/share-url";
+import { getShareOriginWarning, getShareUrl } from "@/lib/share-url";
 import { getSupabase } from "@/lib/supabase";
 import type { Property } from "@/lib/types";
 
@@ -47,6 +47,7 @@ export function ShareModal({ propertyIds, onClose }: ShareModalProps) {
   const [loading, setLoading] = useState(false);
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const shareOriginWarning = getShareOriginWarning();
 
   function toggleField(fieldKey: string) {
     setSelectedFields((prev) =>
@@ -122,6 +123,12 @@ export function ShareModal({ propertyIds, onClose }: ShareModalProps) {
             <p className="field-note">
               تم تحديد <strong>{propertyIds.length}</strong> وحدة عقارية. اختر الحقول التي ترغب في إظهارها للمستلم:
             </p>
+
+            {shareOriginWarning ? (
+              <div className="warning-note">
+                {shareOriginWarning}
+              </div>
+            ) : null}
 
             {!generatedUrl ? (
               <>
