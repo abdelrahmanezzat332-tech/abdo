@@ -69,6 +69,16 @@ export function PropertiesView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    function handleImportedProperties() {
+      void loadProperties();
+    }
+
+    window.addEventListener("properties:imported", handleImportedProperties);
+    return () => window.removeEventListener("properties:imported", handleImportedProperties);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const resetFilters = useCallback(
     function resetFilters() {
       setSearch("");

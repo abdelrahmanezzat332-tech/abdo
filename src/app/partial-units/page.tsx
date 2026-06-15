@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { PageHeading } from "@/components/page-heading";
 import { PropertiesView } from "@/components/properties-view";
+import { PropertyJsonImporter } from "@/components/property-json-importer";
 import { RequireAuth } from "@/components/require-auth";
 
 export default function PartialUnitsPage() {
@@ -16,10 +17,13 @@ export default function PartialUnitsPage() {
           title="الوحدات الجزئية"
           description="إدارة الغرف والأسرة والأنواع الأخرى المتاحة بنفس بيانات الوحدات العقارية."
           action={
-            <Link className="primary-button compact" href="/partial-units/new">
-              <Plus size={18} />
-              إضافة وحدة جزئية
-            </Link>
+            <div className="toolbar-actions">
+              <PropertyJsonImporter mode="partial" />
+              <Link className="primary-button compact" href="/partial-units/new">
+                <Plus size={18} />
+                إضافة وحدة جزئية
+              </Link>
+            </div>
           }
         />
         <Suspense fallback={<div className="panel">جاري تحميل الوحدات الجزئية...</div>}>

@@ -827,6 +827,14 @@ label span {
   gap: 0.6rem;
 }
 
+.json-import-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* ── Properties / Customers grid ─────────────────── */
 .properties-grid {
   display: grid;
