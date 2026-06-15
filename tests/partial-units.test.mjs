@@ -42,6 +42,28 @@ test("partial unit routes use the shared property experience in partial mode", (
   assert.match(editPage, /<PropertyForm mode="partial" property=\{property\}/);
 });
 
+test("partial units page can import units from a local json file", () => {
+  const listPage = readFileSync("src/app/partial-units/page.tsx", "utf8");
+  const importer = readFileSync("src/components/property-json-importer.tsx", "utf8");
+
+  assert.match(listPage, /<PropertyJsonImporter mode="partial"/);
+  assert.match(importer, /type="file"/);
+  assert.match(importer, /accept="application\/json,\s*\.json"/);
+  assert.match(importer, /JSON\.parse/);
+  assert.match(importer, /extractImportItems/);
+  assert.match(importer, /requiredFields/);
+  assert.match(importer, /create_partial_property/);
+  assert.match(importer, /create_property/);
+  assert.match(importer, /onImported/);
+});
+
+test("main units page can import units from a local json file", () => {
+  const propertiesPage = readFileSync("src/app/properties/page.tsx", "utf8");
+
+  assert.match(propertiesPage, /<PropertyJsonImporter mode="full"/);
+  assert.match(propertiesPage, /href="\/properties\/new"/);
+});
+
 test("city selection opens a unit category choice before listing records", () => {
   const cityPage = readFileSync("src/app/cities/page.tsx", "utf8");
   const categoryPage = readFileSync("src/app/unit-category/page.tsx", "utf8");
